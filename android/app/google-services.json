@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "408136950269",
+    "project_id": "sebastiannew-1e5df",
+    "storage_bucket": "sebastiannew-1e5df.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:408136950269:android:ebafb322f7f7525ce57994",
+        "android_client_info": {
+          "package_name": "com.example.e_konekt"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCwMN1c-gQ2no6kG94yD101tPahsFJCGK4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
