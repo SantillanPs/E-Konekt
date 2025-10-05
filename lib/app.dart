@@ -1,6 +1,7 @@
 // Main app widget with routing and theme
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'services/auth_service.dart';
 import 'routes.dart';
 import 'screens/login_screen.dart';
@@ -31,14 +32,14 @@ class AuthWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     final authService = Provider.of<AuthService>(context);
     
-    return StreamBuilder(
+    return StreamBuilder<AuthState>(
       stream: authService.authStateChanges,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(body: Center(child: CircularProgressIndicator()));
         }
         
-        if (snapshot.hasData) {
+        if (snapshot.hasData && snapshot.data?.session != null) {
           return const HomeScreen();
         }
         

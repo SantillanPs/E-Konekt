@@ -1,15 +1,14 @@
-// User service - handles Firestore CRUD operations for users
-import 'package:cloud_firestore/cloud_firestore.dart';
-import '../firebase/firebase_service.dart';
+// User service - handles database CRUD operations for users
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/user_model.dart';
 
 class UserService {
-  final CollectionReference _usersCollection = FirebaseService.usersCollection;
+  final SupabaseClient _supabase = Supabase.instance.client;
 
-  // Create user document in Firestore
+  // Create user in database
   Future<void> createUser(UserModel user) async {
     try {
-      await _usersCollection.doc(user.userId).set(user.toFirestore());
+      await _supabase.from('users').insert(user.toJson());
     } catch (e) {
       throw Exception('Failed to create user: $e');
     }
@@ -18,42 +17,49 @@ class UserService {
   // Get user by ID
   Future<UserModel?> getUserById(String userId) async {
     try {
-      final doc = await _usersCollection.doc(userId).get();
-      if (!doc.exists) return null;
+      final data = await _supabase
+          .from('users')
+          .select()
+          .eq('id', userId)
+          .single();
       
-      return UserModel.fromFirestore(
-        doc.data() as Map<String, dynamic>,
-        doc.id,
-      );
+      return UserModel.fromJson(data);
     } catch (e) {
-      throw Exception('Failed to get user: $e');
+      return null;
     }
   }
 
   // Get user stream (real-time updates)
   Stream<UserModel?> getUserStream(String userId) {
-    return _usersCollection.doc(userId).snapshots().map((doc) {
-      if (!doc.exists) return null;
-      return UserModel.fromFirestore(
-        doc.data() as Map<String, dynamic>,
-        doc.id,
-      );
-    });
+    return _supabase
+        .from('users')
+        .stream(primaryKey: ['id'])
+        .eq('id', userId)
+        .map((data) {
+          if (data.isEmpty) return null;
+          return UserModel.fromJson(data.first);
+        });
   }
 
   // Update user data
   Future<void> updateUser(String userId, Map<String, dynamic> data) async {
     try {
-      await _usersCollection.doc(userId).update(data);
+      await _supabase
+          .from('users')
+          .update(data)
+          .eq('id', userId);
     } catch (e) {
       throw Exception('Failed to update user: $e');
     }
   }
 
-  // Delete user document
+  // Delete user
   Future<void> deleteUser(String userId) async {
     try {
-      await _usersCollection.doc(userId).delete();
+      await _supabase
+          .from('users')
+          .delete()
+          .eq('id', userId);
     } catch (e) {
       throw Exception('Failed to delete user: $e');
     }
@@ -62,16 +68,12 @@ class UserService {
   // Get users by barangay
   Future<List<UserModel>> getUsersByBarangay(String barangay) async {
     try {
-      final querySnapshot = await _usersCollection
-          .where('barangay', isEqualTo: barangay)
-          .get();
+      final data = await _supabase
+          .from('users')
+          .select()
+          .eq('barangay', barangay);
 
-      return querySnapshot.docs
-          .map((doc) => UserModel.fromFirestore(
-                doc.data() as Map<String, dynamic>,
-                doc.id,
-              ))
-          .toList();
+      return data.map((json) => UserModel.fromJson(json)).toList();
     } catch (e) {
       throw Exception('Failed to get users by barangay: $e');
     }
@@ -80,16 +82,12 @@ class UserService {
   // Get users by city
   Future<List<UserModel>> getUsersByCity(String city) async {
     try {
-      final querySnapshot = await _usersCollection
-          .where('city', isEqualTo: city)
-          .get();
+      final data = await _supabase
+          .from('users')
+          .select()
+          .eq('city', city);
 
-      return querySnapshot.docs
-          .map((doc) => UserModel.fromFirestore(
-                doc.data() as Map<String, dynamic>,
-                doc.id,
-              ))
-          .toList();
+      return data.map((json) => UserModel.fromJson(json)).toList();
     } catch (e) {
       throw Exception('Failed to get users by city: $e');
     }
@@ -98,16 +96,12 @@ class UserService {
   // Get users by role
   Future<List<UserModel>> getUsersByRole(String role) async {
     try {
-      final querySnapshot = await _usersCollection
-          .where('role', isEqualTo: role)
-          .get();
+      final data = await _supabase
+          .from('users')
+          .select()
+          .eq('role', role);
 
-      return querySnapshot.docs
-          .map((doc) => UserModel.fromFirestore(
-                doc.data() as Map<String, dynamic>,
-                doc.id,
-              ))
-          .toList();
+      return data.map((json) => UserModel.fromJson(json)).toList();
     } catch (e) {
       throw Exception('Failed to get users by role: $e');
     }

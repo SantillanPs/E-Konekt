@@ -1,4 +1,4 @@
-// User data model matching Firestore structure
+// User data model matching Supabase structure
 class UserModel {
   final String userId;
   final String name;
@@ -18,51 +18,29 @@ class UserModel {
     this.createdAt,
   });
 
-  // Convert Firestore document to UserModel
-  factory UserModel.fromFirestore(Map<String, dynamic> data, String documentId) {
+  factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
-      userId: documentId,
-      name: data['name'] ?? '',
-      email: data['email'] ?? '',
-      role: data['role'] ?? 'user',
-      barangay: data['barangay'] ?? '',
-      city: data['city'] ?? '',
-      createdAt: data['created_at'] != null
-          ? DateTime.parse(data['created_at'])
+      userId: json['id'] ?? '',
+      name: json['name'] ?? '',
+      email: json['email'] ?? '',
+      role: json['role'] ?? 'user',
+      barangay: json['barangay'] ?? '',
+      city: json['city'] ?? '',
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'])
           : null,
     );
   }
 
-  // Convert UserModel to Firestore document
-  Map<String, dynamic> toFirestore() {
+  Map<String, dynamic> toJson() {
     return {
+      'id': userId,
       'name': name,
       'email': email,
       'role': role,
       'barangay': barangay,
       'city': city,
-      'created_at': createdAt?.toIso8601String() ?? DateTime.now().toIso8601String(),
+      'created_at': createdAt?.toIso8601String(),
     };
-  }
-
-  // Create copy with updated fields
-  UserModel copyWith({
-    String? userId,
-    String? name,
-    String? email,
-    String? role,
-    String? barangay,
-    String? city,
-    DateTime? createdAt,
-  }) {
-    return UserModel(
-      userId: userId ?? this.userId,
-      name: name ?? this.name,
-      email: email ?? this.email,
-      role: role ?? this.role,
-      barangay: barangay ?? this.barangay,
-      city: city ?? this.city,
-      createdAt: createdAt ?? this.createdAt,
-    );
   }
 }

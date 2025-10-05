@@ -1,18 +1,15 @@
 // Authentication service - handles sign up, login, logout
-import 'package:firebase_auth/firebase_auth.dart';
-import '../firebase/firebase_service.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/user_model.dart';
-import 'user_service.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AuthService {
-  final FirebaseAuth _auth = FirebaseService.auth;
-  final UserService _userService = UserService();
+  final SupabaseClient _supabase = Supabase.instance.client;
 
-  // Stream of auth state changes
-  Stream<User?> get authStateChanges => _auth.authStateChanges();
+  Stream<AuthState> get authStateChanges => _supabase.auth.onAuthStateChange;
 
   // Get current user
-  User? get currentUser => _auth.currentUser;
+  User? get currentUser => _supabase.auth.currentUser;
 
   // Sign up with email and password
   Future<UserModel?> signUp({
@@ -24,18 +21,17 @@ class AuthService {
     required String city,
   }) async {
     try {
-      // Create user in Firebase Auth
-      final userCredential = await _auth.createUserWithEmailAndPassword(
+      final response = await _supabase.auth.signUp(
         email: email,
         password: password,
       );
 
-      final user = userCredential.user;
+      final user = response.user;
       if (user == null) throw Exception('Failed to create user');
 
-      // Create user profile in Firestore
+      // Create user profile in database using service role client
       final userModel = UserModel(
-        userId: user.uid,
+        userId: user.id,
         name: name,
         email: email,
         role: role,
@@ -44,14 +40,16 @@ class AuthService {
         createdAt: DateTime.now(),
       );
 
-      await _userService.createUser(userModel);
+      // Use service role key for user profile creation
+      final serviceClient = SupabaseClient(
+        dotenv.get('SUPABASE_URL', fallback: 'YOUR_SUPABASE_URL'),
+        dotenv.get('SUPABASE_SERVICE_ROLE_KEY', fallback: 'YOUR_SERVICE_ROLE_KEY'),
+      );
 
-      // Update display name
-      await user.updateDisplayName(name);
-
+      await serviceClient.from('users').insert(userModel.toJson());
       return userModel;
-    } on FirebaseAuthException catch (e) {
-      throw _handleAuthException(e);
+    } on AuthException catch (e) {
+      throw Exception(e.message);
     } catch (e) {
       throw Exception('Sign up failed: $e');
     }
@@ -63,13 +61,13 @@ class AuthService {
     required String password,
   }) async {
     try {
-      final userCredential = await _auth.signInWithEmailAndPassword(
+      final response = await _supabase.auth.signInWithPassword(
         email: email,
         password: password,
       );
-      return userCredential.user;
-    } on FirebaseAuthException catch (e) {
-      throw _handleAuthException(e);
+      return response.user;
+    } on AuthException catch (e) {
+      throw Exception(e.message);
     } catch (e) {
       throw Exception('Login failed: $e');
     }
@@ -78,7 +76,7 @@ class AuthService {
   // Logout
   Future<void> logout() async {
     try {
-      await _auth.signOut();
+      await _supabase.auth.signOut();
     } catch (e) {
       throw Exception('Logout failed: $e');
     }
@@ -87,33 +85,11 @@ class AuthService {
   // Password reset
   Future<void> resetPassword(String email) async {
     try {
-      await _auth.sendPasswordResetEmail(email: email);
-    } on FirebaseAuthException catch (e) {
-      throw _handleAuthException(e);
+      await _supabase.auth.resetPasswordForEmail(email);
+    } on AuthException catch (e) {
+      throw Exception(e.message);
     } catch (e) {
       throw Exception('Password reset failed: $e');
-    }
-  }
-
-  // Handle Firebase Auth exceptions
-  String _handleAuthException(FirebaseAuthException e) {
-    switch (e.code) {
-      case 'weak-password':
-        return 'Password is too weak. Use at least 6 characters.';
-      case 'email-already-in-use':
-        return 'An account already exists with this email.';
-      case 'invalid-email':
-        return 'Invalid email address.';
-      case 'user-not-found':
-        return 'No account found with this email.';
-      case 'wrong-password':
-        return 'Incorrect password.';
-      case 'user-disabled':
-        return 'This account has been disabled.';
-      case 'too-many-requests':
-        return 'Too many attempts. Please try again later.';
-      default:
-        return 'Authentication error: ${e.message}';
     }
   }
 }

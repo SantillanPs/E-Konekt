@@ -1,28 +1,28 @@
 // Entry point for E-Konekt app
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:provider/provider.dart';
-import 'firebase/firebase_options.dart';
-import 'firebase/firebase_service.dart';
 import 'services/auth_service.dart';
 import 'services/user_service.dart';
+import 'services/product_service.dart';
 import 'app.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Initialize Firebase (only if not already initialized)
-  try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-  } catch (e) {
-    // Firebase already initialized, ignore
-  }
-  
-  // Initialize Firebase services
-  FirebaseService.initialize();
-  
+
+  // Load environment variables
+  await dotenv.load(fileName: ".env").catchError((error) {
+    print("Could not load .env file: $error");
+    return Future.value(); // Continue with empty env
+  });
+
+  // Initialize Supabase using environment variables or fallbacks
+  await Supabase.initialize(
+    url: dotenv.get('SUPABASE_URL', fallback: 'YOUR_SUPABASE_URL'),
+    anonKey: dotenv.get('SUPABASE_ANON_KEY', fallback: 'YOUR_SUPABASE_ANON_KEY'),
+  );
+
   runApp(
     MultiProvider(
       providers: [
@@ -31,6 +31,9 @@ void main() async {
         ),
         Provider<UserService>(
           create: (_) => UserService(),
+        ),
+        Provider<ProductService>(
+          create: (_) => ProductService(),
         ),
       ],
       child: const EKonektApp(),

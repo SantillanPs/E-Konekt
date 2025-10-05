@@ -56,7 +56,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       body: StreamBuilder<UserModel?>(
-        stream: userService.getUserStream(currentUser?.uid ?? ''),
+        stream: userService.getUserStream(currentUser?.id ?? ''),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
