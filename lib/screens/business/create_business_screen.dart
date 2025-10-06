@@ -1,63 +1,52 @@
-// Add product screen - form to upload new product
+// Create business screen - form to register business profile
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import '../../models/product_model.dart';
-import '../../services/product_service.dart';
+import '../../models/business_model.dart';
+import '../../services/business_service.dart';
 import '../../services/auth_service.dart';
-import '../../services/user_service.dart';
 import '../../widgets/custom_textfield.dart';
 import '../../widgets/primary_button.dart';
 
-class AddProductScreen extends StatefulWidget {
-  const AddProductScreen({super.key});
+class CreateBusinessScreen extends StatefulWidget {
+  const CreateBusinessScreen({super.key});
 
   @override
-  State<AddProductScreen> createState() => _AddProductScreenState();
+  State<CreateBusinessScreen> createState() => _CreateBusinessScreenState();
 }
 
-class _AddProductScreenState extends State<AddProductScreen> {
+class _CreateBusinessScreenState extends State<CreateBusinessScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final _priceController = TextEditingController();
-  final _locationController = TextEditingController();
+  final _addressController = TextEditingController();
+  final _contactController = TextEditingController();
   final ImagePicker _picker = ImagePicker();
-  
-  File? _imageFile;
-  String _selectedCategory = 'Electronics';
-  bool _isLoading = false;
 
-  final List<String> _categories = [
-    'Electronics',
-    'Furniture',
-    'Clothing',
-    'Food',
-    'Services',
-    'Others',
-  ];
+  File? _logoFile;
+  bool _isLoading = false;
 
   @override
   void dispose() {
     _nameController.dispose();
     _descriptionController.dispose();
-    _priceController.dispose();
-    _locationController.dispose();
+    _addressController.dispose();
+    _contactController.dispose();
     super.dispose();
   }
 
-  Future<void> _pickImage() async {
+  Future<void> _pickLogo() async {
     try {
       final XFile? image = await _picker.pickImage(
         source: ImageSource.gallery,
-        maxWidth: 1080,
-        maxHeight: 1080,
+        maxWidth: 800,
+        maxHeight: 800,
         imageQuality: 85,
       );
-      
+
       if (image != null) {
-        setState(() => _imageFile = File(image.path));
+        setState(() => _logoFile = File(image.path));
       }
     } catch (e) {
       if (mounted) {
@@ -70,50 +59,37 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
   Future<void> _handleSubmit() async {
     if (!_formKey.currentState!.validate()) return;
-    
-    if (_imageFile == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select an image')),
-      );
-      return;
-    }
 
     setState(() => _isLoading = true);
 
     try {
       final authService = Provider.of<AuthService>(context, listen: false);
-      final userService = Provider.of<UserService>(context, listen: false);
-      final productService = Provider.of<ProductService>(context, listen: false);
+      final businessService = Provider.of<BusinessService>(context, listen: false);
       final currentUser = authService.currentUser;
-      
+
       if (currentUser == null) throw Exception('Not logged in');
 
-      // Get user data
-      final userData = await userService.getUserById(currentUser.id);
-      if (userData == null) throw Exception('User data not found');
+      String logoUrl = '';
+      if (_logoFile != null) {
+        logoUrl = await businessService.uploadLogo(_logoFile!, _nameController.text);
+      }
 
-      // Upload image
-      final imageUrl = await productService.uploadImage(_imageFile!, _nameController.text);
-
-      // Create product
-      final product = ProductModel(
-        productId: '',
+      final business = BusinessModel(
+        businessId: '',
+        ownerId: currentUser.id,
         name: _nameController.text.trim(),
         description: _descriptionController.text.trim(),
-        price: double.parse(_priceController.text.trim()),
-        imageUrl: imageUrl,
-        location: _locationController.text.trim(),
-        category: _selectedCategory,
-        ownerId: currentUser.id,
-        ownerName: userData.name,
+        address: _addressController.text.trim(),
+        contactInfo: _contactController.text.trim(),
+        logoUrl: logoUrl,
         createdAt: DateTime.now(),
       );
 
-      await productService.addProduct(product);
+      await businessService.createBusiness(business);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Product posted successfully!')),
+          const SnackBar(content: Text('Business profile created!')),
         );
         Navigator.pop(context, true);
       }
@@ -131,7 +107,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Post Product')),
+      appBar: AppBar(title: const Text('Create Business Profile')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Form(
@@ -140,25 +116,25 @@ class _AddProductScreenState extends State<AddProductScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               GestureDetector(
-                onTap: _pickImage,
+                onTap: _pickLogo,
                 child: Container(
-                  height: 200,
+                  height: 150,
                   decoration: BoxDecoration(
                     color: Colors.grey[200],
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: Colors.grey),
                   ),
-                  child: _imageFile != null
+                  child: _logoFile != null
                       ? ClipRRect(
                           borderRadius: BorderRadius.circular(8),
-                          child: Image.file(_imageFile!, fit: BoxFit.cover),
+                          child: Image.file(_logoFile!, fit: BoxFit.cover),
                         )
                       : const Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.add_photo_alternate, size: 50, color: Colors.grey),
+                            Icon(Icons.business, size: 50, color: Colors.grey),
                             SizedBox(height: 8),
-                            Text('Tap to select image', style: TextStyle(color: Colors.grey)),
+                            Text('Tap to add logo (optional)', style: TextStyle(color: Colors.grey)),
                           ],
                         ),
                 ),
@@ -167,8 +143,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
               CustomTextField(
                 controller: _nameController,
-                label: 'Product Name',
-                prefixIcon: Icons.shopping_bag,
+                label: 'Business Name',
+                prefixIcon: Icons.business,
                 validator: (value) {
                   if (value == null || value.isEmpty) return 'Name is required';
                   return null;
@@ -189,46 +165,29 @@ class _AddProductScreenState extends State<AddProductScreen> {
               const SizedBox(height: 16),
 
               CustomTextField(
-                controller: _priceController,
-                label: 'Price (₱)',
-                prefixIcon: Icons.attach_money,
-                keyboardType: TextInputType.number,
+                controller: _addressController,
+                label: 'Address',
+                prefixIcon: Icons.location_on,
                 validator: (value) {
-                  if (value == null || value.isEmpty) return 'Price is required';
-                  if (double.tryParse(value) == null) return 'Enter valid price';
+                  if (value == null || value.isEmpty) return 'Address is required';
                   return null;
                 },
               ),
               const SizedBox(height: 16),
 
-              DropdownButtonFormField<String>(
-                value: _selectedCategory,
-                decoration: const InputDecoration(
-                  labelText: 'Category',
-                  prefixIcon: Icon(Icons.category),
-                ),
-                items: _categories.map((category) {
-                  return DropdownMenuItem(value: category, child: Text(category));
-                }).toList(),
-                onChanged: (value) {
-                  if (value != null) setState(() => _selectedCategory = value);
-                },
-              ),
-              const SizedBox(height: 16),
-
               CustomTextField(
-                controller: _locationController,
-                label: 'Location',
-                prefixIcon: Icons.location_on,
+                controller: _contactController,
+                label: 'Contact Info',
+                prefixIcon: Icons.phone,
                 validator: (value) {
-                  if (value == null || value.isEmpty) return 'Location is required';
+                  if (value == null || value.isEmpty) return 'Contact info is required';
                   return null;
                 },
               ),
               const SizedBox(height: 24),
 
               PrimaryButton(
-                text: 'Post Product',
+                text: 'Create Business',
                 isLoading: _isLoading,
                 onPressed: _handleSubmit,
               ),

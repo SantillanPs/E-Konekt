@@ -5,24 +5,23 @@ import 'package:provider/provider.dart';
 import 'services/auth_service.dart';
 import 'services/user_service.dart';
 import 'services/product_service.dart';
+import 'services/business_service.dart';
+import 'services/job_service.dart';
 import 'app.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Load environment variables
-  await dotenv.load(fileName: ".env").catchError((error) {
-    print("Could not load .env file: $error");
-    return Future.value(); // Continue with empty env
-  });
+  // Load environment variables from .env file
+  await dotenv.load();
 
-  // Initialize Supabase using environment variables or fallbacks
+  // Initialize Supabase
   await Supabase.initialize(
-    url: dotenv.get('SUPABASE_URL', fallback: 'YOUR_SUPABASE_URL'),
-    anonKey: dotenv.get('SUPABASE_ANON_KEY', fallback: 'YOUR_SUPABASE_ANON_KEY'),
+    url: dotenv.get('SUPABASE_URL'),
+    anonKey: dotenv.get('SUPABASE_ANON_KEY'),
   );
-
+  
   runApp(
     MultiProvider(
       providers: [
@@ -34,6 +33,12 @@ void main() async {
         ),
         Provider<ProductService>(
           create: (_) => ProductService(),
+        ),
+        Provider<BusinessService>(
+          create: (_) => BusinessService(),
+        ),
+        Provider<JobService>(
+          create: (_) => JobService(),
         ),
       ],
       child: const EKonektApp(),

@@ -3,7 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 import '../services/user_service.dart';
+import '../services/business_service.dart';
 import '../models/user_model.dart';
+import 'marketplace/marketplace_screen.dart';
+import 'jobs/jobs_screen.dart';
+import 'business/create_business_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -45,6 +49,12 @@ class _HomeScreenState extends State<HomeScreen> {
     final userService = Provider.of<UserService>(context, listen: false);
     final currentUser = authService.currentUser;
 
+    if (currentUser == null) {
+      return const Scaffold(
+        body: Center(child: Text('Not logged in')),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('E-Konekt'),
@@ -56,7 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       body: StreamBuilder<UserModel?>(
-        stream: userService.getUserStream(currentUser?.id ?? ''),
+        stream: userService.getUserStream(currentUser.id),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -71,8 +81,8 @@ class _HomeScreenState extends State<HomeScreen> {
             index: _selectedIndex,
             children: [
               _buildHome(user),
-              _buildPlaceholder('Marketplace', Icons.store),
-              _buildPlaceholder('Jobs', Icons.work),
+              const MarketplaceScreen(),
+              const JobsScreen(),
               _buildPlaceholder('Announcements', Icons.announcement),
               _buildProfile(user),
             ],
@@ -126,7 +136,31 @@ class _HomeScreenState extends State<HomeScreen> {
               _buildQuickCard(Icons.store, 'Marketplace', Colors.blue, () => setState(() => _selectedIndex = 1)),
               _buildQuickCard(Icons.work, 'Jobs', Colors.green, () => setState(() => _selectedIndex = 2)),
               _buildQuickCard(Icons.announcement, 'Announcements', Colors.orange, () => setState(() => _selectedIndex = 3)),
-              _buildQuickCard(Icons.business, 'My Business', Colors.purple, () {}),
+              _buildQuickCard(Icons.business, 'My Business', Colors.purple, () async {
+                final businessService = Provider.of<BusinessService>(context, listen: false);
+                final authService = Provider.of<AuthService>(context, listen: false);
+                final currentUser = authService.currentUser;
+                
+                if (currentUser != null) {
+                  final business = await businessService.getBusinessByOwnerId(currentUser.id);
+                  if (business == null) {
+                    // No business profile, navigate to create
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const CreateBusinessScreen()),
+                    );
+                    if (result == true && mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Business profile created! You can now post jobs.')),
+                      );
+                    }
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Business: ${business.name}')),
+                    );
+                  }
+                }
+              }),
             ],
           ),
         ],

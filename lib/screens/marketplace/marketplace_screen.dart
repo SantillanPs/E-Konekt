@@ -1,5 +1,6 @@
 // Marketplace screen - displays all products
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../models/product_model.dart';
 import '../../services/product_service.dart';
 import 'add_product_screen.dart';
@@ -13,7 +14,6 @@ class MarketplaceScreen extends StatefulWidget {
 }
 
 class _MarketplaceScreenState extends State<MarketplaceScreen> {
-  final ProductService _productService = ProductService();
   final TextEditingController _searchController = TextEditingController();
   List<ProductModel> _allProducts = [];
   List<ProductModel> _displayedProducts = [];
@@ -34,7 +34,8 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
   Future<void> _loadProducts() async {
     setState(() => _isLoading = true);
     try {
-      final products = await _productService.getProducts();
+      final productService = Provider.of<ProductService>(context, listen: false);
+      final products = await productService.getProducts();
       setState(() {
         _allProducts = products;
         _displayedProducts = products;
