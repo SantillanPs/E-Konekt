@@ -7,6 +7,7 @@ import '../services/business_service.dart';
 import '../models/user_model.dart';
 import 'marketplace/marketplace_screen.dart';
 import 'jobs/jobs_screen.dart';
+import 'announcements/announcements_screen.dart';
 import 'business/create_business_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -83,7 +84,7 @@ class _HomeScreenState extends State<HomeScreen> {
               _buildHome(user),
               const MarketplaceScreen(),
               const JobsScreen(),
-              _buildPlaceholder('Announcements', Icons.announcement),
+              const AnnouncementsScreen(),
               _buildProfile(user),
             ],
           );

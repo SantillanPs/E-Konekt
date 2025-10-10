@@ -7,6 +7,7 @@ import 'services/user_service.dart';
 import 'services/product_service.dart';
 import 'services/business_service.dart';
 import 'services/job_service.dart';
+import 'services/announcement_service.dart';
 import 'app.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -39,6 +40,9 @@ void main() async {
         ),
         Provider<JobService>(
           create: (_) => JobService(),
+        ),
+        Provider<AnnouncementService>(
+          create: (_) => AnnouncementService(),
         ),
       ],
       child: const EKonektApp(),
