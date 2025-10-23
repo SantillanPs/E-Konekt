@@ -1,7 +1,6 @@
 // Authentication service - handles sign up, login, logout
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/user_model.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AuthService {
   final SupabaseClient _supabase = Supabase.instance.client;
@@ -21,15 +20,24 @@ class AuthService {
     required String city,
   }) async {
     try {
+      // Pass user data as metadata so the trigger can use it
       final response = await _supabase.auth.signUp(
         email: email,
         password: password,
+        data: {
+          'name': name,
+          'role': role,
+          'barangay': barangay,
+          'city': city,
+        },
       );
 
       final user = response.user;
       if (user == null) throw Exception('Failed to create user');
 
-      // Create user profile in database using service role client
+      // Wait for the database trigger to create the user profile
+      await Future.delayed(const Duration(milliseconds: 1000));
+
       final userModel = UserModel(
         userId: user.id,
         name: name,
@@ -40,18 +48,11 @@ class AuthService {
         createdAt: DateTime.now(),
       );
 
-      // Use service role key for user profile creation
-      final serviceClient = SupabaseClient(
-        dotenv.get('SUPABASE_URL', fallback: 'YOUR_SUPABASE_URL'),
-        dotenv.get('SUPABASE_SERVICE_ROLE_KEY', fallback: 'YOUR_SERVICE_ROLE_KEY'),
-      );
-
-      await serviceClient.from('users').insert(userModel.toJson());
       return userModel;
     } on AuthException catch (e) {
       throw Exception(e.message);
     } catch (e) {
-      throw Exception('Sign up failed: $e');
+      throw Exception('Database error saving new user');
     }
   }
 

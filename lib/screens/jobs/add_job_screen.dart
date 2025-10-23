@@ -52,7 +52,6 @@ class _AddJobScreenState extends State<AddJobScreen> {
       final businessService = Provider.of<BusinessService>(context, listen: false);
       final jobService = Provider.of<JobService>(context, listen: false);
       final currentUser = authService.currentUser;
-
       if (currentUser == null) throw Exception('Not logged in');
 
       final business = await businessService.getBusinessByOwnerId(currentUser.id);
@@ -68,6 +67,8 @@ class _AddJobScreenState extends State<AddJobScreen> {
         location: _locationController.text.trim(),
         businessName: business.name,
         createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+        status: 'open',
       );
 
       await jobService.createJob(job);

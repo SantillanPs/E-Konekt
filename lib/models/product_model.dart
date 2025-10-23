@@ -10,6 +10,10 @@ class ProductModel {
   final String ownerId;
   final String ownerName;
   final DateTime createdAt;
+  final DateTime updatedAt;
+  final int stock;
+  final String? businessId;
+  final String sellerType;
 
   ProductModel({
     required this.productId,
@@ -22,6 +26,10 @@ class ProductModel {
     required this.ownerId,
     required this.ownerName,
     required this.createdAt,
+    required this.updatedAt,
+    required this.stock,
+    this.businessId,
+    required this.sellerType,
   });
 
   factory ProductModel.fromJson(Map<String, dynamic> json) {
@@ -38,6 +46,12 @@ class ProductModel {
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'])
           : DateTime.now(),
+      updatedAt: json['updated_at'] != null
+          ? DateTime.parse(json['updated_at'])
+          : DateTime.now(),
+      stock: json['stock'] ?? 0,
+      businessId: json['business_id']?.toString(),
+      sellerType: json['seller_type'] ?? 'individual',
     );
   }
 
@@ -52,6 +66,10 @@ class ProductModel {
       'owner_id': ownerId,
       'owner_name': ownerName,
       'created_at': createdAt.toIso8601String(),
+      'updated_at': updatedAt.toIso8601String(),
+      'stock': stock,
+      'business_id': businessId,
+      'seller_type': sellerType,
     };
   }
 }

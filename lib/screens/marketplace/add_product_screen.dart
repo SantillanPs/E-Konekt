@@ -107,6 +107,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
         ownerId: currentUser.id,
         ownerName: userData.name,
         createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+        stock: 1,
+        businessId: null,
+        sellerType: 'individual',
       );
 
       await productService.addProduct(product);

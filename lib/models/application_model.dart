@@ -7,6 +7,7 @@ class ApplicationModel {
   final String userEmail;
   final String status;
   final DateTime appliedAt;
+  final String? coverLetter;
 
   ApplicationModel({
     required this.applicationId,
@@ -16,6 +17,7 @@ class ApplicationModel {
     required this.userEmail,
     required this.status,
     required this.appliedAt,
+    this.coverLetter,
   });
 
   factory ApplicationModel.fromJson(Map<String, dynamic> json) {
@@ -29,6 +31,7 @@ class ApplicationModel {
       appliedAt: json['applied_at'] != null
           ? DateTime.parse(json['applied_at'])
           : DateTime.now(),
+      coverLetter: json['cover_letter'],
     );
   }
 
@@ -40,6 +43,7 @@ class ApplicationModel {
       'user_email': userEmail,
       'status': status,
       'applied_at': appliedAt.toIso8601String(),
+      'cover_letter': coverLetter,
     };
   }
 }

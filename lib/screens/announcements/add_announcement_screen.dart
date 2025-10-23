@@ -59,6 +59,7 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
         content: _contentController.text.trim(),
         type: _selectedType,
         createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
       );
 
       await announcementService.createAnnouncement(announcement);
@@ -115,7 +116,7 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
               const SizedBox(height: 16),
 
               DropdownButtonFormField<String>(
-                value: _selectedType,
+                initialValue: _selectedType,
                 decoration: const InputDecoration(
                   labelText: 'Type',
                   prefixIcon: Icon(Icons.category),

@@ -68,7 +68,6 @@ class _CreateBusinessScreenState extends State<CreateBusinessScreen> {
       final currentUser = authService.currentUser;
 
       if (currentUser == null) throw Exception('Not logged in');
-
       String logoUrl = '';
       if (_logoFile != null) {
         logoUrl = await businessService.uploadLogo(_logoFile!, _nameController.text);
@@ -83,6 +82,7 @@ class _CreateBusinessScreenState extends State<CreateBusinessScreen> {
         contactInfo: _contactController.text.trim(),
         logoUrl: logoUrl,
         createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
       );
 
       await businessService.createBusiness(business);

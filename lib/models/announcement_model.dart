@@ -6,6 +6,9 @@ class AnnouncementModel {
   final String content;
   final String type;
   final DateTime createdAt;
+  final DateTime updatedAt;
+  final String? location;
+  final String? locationId;
 
   AnnouncementModel({
     required this.announcementId,
@@ -14,6 +17,9 @@ class AnnouncementModel {
     required this.content,
     required this.type,
     required this.createdAt,
+    required this.updatedAt,
+    this.location,
+    this.locationId,
   });
 
   factory AnnouncementModel.fromJson(Map<String, dynamic> json) {
@@ -26,6 +32,11 @@ class AnnouncementModel {
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'])
           : DateTime.now(),
+      updatedAt: json['updated_at'] != null
+          ? DateTime.parse(json['updated_at'])
+          : DateTime.now(),
+      location: json['location'],
+      locationId: json['location_id']?.toString(),
     );
   }
 
@@ -36,6 +47,9 @@ class AnnouncementModel {
       'content': content,
       'type': type,
       'created_at': createdAt.toIso8601String(),
+      'updated_at': updatedAt.toIso8601String(),
+      'location': location,
+      'location_id': locationId,
     };
   }
 }

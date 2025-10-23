@@ -19,7 +19,7 @@ migrate_working_dir/
 .idea/
 
 
-# .env
+.env
 
 
 # The .vscode folder contains launch configuration and tasks you configure in
@@ -37,7 +37,6 @@ migrate_working_dir/
 /build/
 /coverage/
 
-.env
 
 # Symbolication related
 app.*.symbols
