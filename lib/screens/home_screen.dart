@@ -8,6 +8,9 @@ import '../models/user_model.dart';
 import 'marketplace/marketplace_screen.dart';
 import 'jobs/jobs_screen.dart';
 import 'announcements/announcements_screen.dart';
+import 'announcements/announcement_detail_screen.dart';
+import '../models/announcement_model.dart';
+import '../services/announcement_service.dart';
 
 import '../theme/app_theme.dart';
 import '../widgets/custom_text_field.dart';
@@ -24,6 +27,31 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
+  List<AnnouncementModel> _announcements = [];
+  bool _isLoadingAnnouncements = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAnnouncements();
+  }
+
+  Future<void> _loadAnnouncements() async {
+    try {
+      final service = Provider.of<AnnouncementService>(context, listen: false);
+      final data = await service.getAllAnnouncements();
+      if (mounted) {
+        setState(() {
+          _announcements = data;
+          _isLoadingAnnouncements = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoadingAnnouncements = false);
+      }
+    }
+  }
 
   Future<void> _handleLogout() async {
     final confirm = await showDialog<bool>(
@@ -171,76 +199,59 @@ class _HomeScreenState extends State<HomeScreen> {
             hintText: 'Search jobs...',
             prefixIcon: const Icon(Icons.search, color: AppColors.textLight),
             suffixIcon: const Icon(Icons.tune, color: AppColors.primaryBlue),
-          ),
-          const SizedBox(height: 24),
-
-          // Category Pills
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                CategoryPill(
-                  label: 'Marketplace',
-                  isSelected: true,
-                  onTap: () => setState(() => _selectedIndex = 1),
-                ),
-                const SizedBox(width: 12),
-                CategoryPill(
-                  label: 'Announcements',
-                  isSelected: false,
-                  onTap: () => setState(() => _selectedIndex = 3),
-                ),
-                const SizedBox(width: 12),
-                CategoryPill(
-                  label: 'Jobs',
-                  isSelected: false,
-                  onTap: () => setState(() => _selectedIndex = 2),
-                ),
-              ],
-            ),
+            readOnly: true,
+            onTap: () => setState(() => _selectedIndex = 2),
           ),
           const SizedBox(height: 32),
 
           // Community Announcements Header
-          Text('Community Announcements', style: AppTextStyles.titleLarge),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Community Announcements', style: AppTextStyles.titleLarge),
+              TextButton(
+                onPressed: () => setState(() => _selectedIndex = 3),
+                child: const Text('View All'),
+              ),
+            ],
+          ),
           const SizedBox(height: 16),
 
-          // Announcement Cards (Mock Data)
-          ListingCard(
-            title: 'Water Interruption Notice',
-            subtitle: 'Barangay San Jose • 2h ago',
-            location: 'Cebu City',
-            onTap: () {},
-            actionButton: Text(
-              'Scheduled maintenance on May 15, 9 AM - 3 PM. Please store water.',
-              style: AppTextStyles.bodyMedium,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          const SizedBox(height: 16),
-          ListingCard(
-            title: 'New Opening: 20% off all drinks!',
-            subtitle: 'Sulu Coffee • 2h ago',
-            location: 'Cebu City',
-            imageUrl: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&q=80&w=500', // Placeholder
-            onTap: () {},
-          ),
-          const SizedBox(height: 16),
-           ListingCard(
-            title: 'Free Mobile Photography Workshop',
-            subtitle: 'Visayas Creatives',
-            location: 'Cebu City',
-            onTap: () {},
-            actionButton: Align(
-              alignment: Alignment.centerRight,
-              child: CustomButton(
-                text: 'Apply Now',
-                onPressed: () {},
-                type: ButtonType.secondary,
-              ),
-            ),
-          ),
+          // Announcement Cards
+          _isLoadingAnnouncements
+              ? const Center(child: CircularProgressIndicator())
+              : _announcements.isEmpty
+                  ? const Center(child: Text('No announcements yet'))
+                  : ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: _announcements.take(3).length,
+                      itemBuilder: (context, index) {
+                        final announcement = _announcements[index];
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: ListingCard(
+                            title: announcement.title,
+                            subtitle: '${announcement.postedBy} • ${_formatDate(announcement.createdAt)}',
+                            location: announcement.type.toUpperCase(),
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => AnnouncementDetailScreen(announcement: announcement),
+                                ),
+                              );
+                            },
+                            actionButton: Text(
+                              announcement.content,
+                              style: AppTextStyles.bodyMedium,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
         ],
       ),
     );
@@ -265,5 +276,20 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
     );
+  }
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final difference = now.difference(date);
+
+    if (difference.inDays == 0) {
+      if (difference.inHours == 0) {
+        return '${difference.inMinutes}m ago';
+      }
+      return '${difference.inHours}h ago';
+    } else if (difference.inDays < 7) {
+      return '${difference.inDays}d ago';
+    } else {
+      return '${date.day}/${date.month}';
+    }
   }
 }

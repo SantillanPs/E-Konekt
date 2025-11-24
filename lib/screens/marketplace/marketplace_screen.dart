@@ -68,10 +68,9 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
       ).toList();
     }
 
-    // Filter by category (Mock logic since product model might not have category yet)
-    // In a real app, we would check product.category == _selectedCategory
+    // Filter by category
     if (_selectedCategory != 'All') {
-      // For now, just show all or maybe filter randomly to simulate
+      filtered = filtered.where((product) => product.category == _selectedCategory).toList();
     }
 
     setState(() {
@@ -126,7 +125,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                     hintText: 'Marketplace...',
                     prefixIcon: const Icon(Icons.search, color: AppColors.textLight),
                     suffixIcon: const Icon(Icons.tune, color: AppColors.primaryBlue),
-                    // onChanged: (value) => _filterProducts(), // CustomTextField needs onChanged support or use controller listener
+                    onChanged: (value) => _filterProducts(),
                   ),
                   const SizedBox(height: 16),
 

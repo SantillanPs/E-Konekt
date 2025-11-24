@@ -132,23 +132,6 @@ class _JobsScreenState extends State<JobsScreen> {
                     suffixIcon: const Icon(Icons.add_box_outlined, color: AppColors.primaryBlue), // Mocking the + icon in search bar from design
                     onChanged: _searchJobs, // CustomTextField needs to support this or use controller listener
                   ),
-                  const SizedBox(height: 16),
-
-                  // Pills
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        CategoryPill(label: 'Marketplace', isSelected: false, onTap: () {}), // Navigation logic handled in Home usually
-                        const SizedBox(width: 12),
-                        CategoryPill(label: 'Jobs', isSelected: true, onTap: () {}),
-                        const SizedBox(width: 12),
-                        const Icon(Icons.list_alt, color: AppColors.primaryBlue), // Mock icons
-                        const SizedBox(width: 12),
-                        const Icon(Icons.lock_outline, color: AppColors.primaryBlue),
-                      ],
-                    ),
-                  ),
                   const SizedBox(height: 24),
 
                   Text('Job Board', style: AppTextStyles.titleLarge),
@@ -187,7 +170,21 @@ class _JobsScreenState extends State<JobsScreen> {
                                     height: 36,
                                     child: CustomButton(
                                       text: 'Apply Now',
-                                      onPressed: () {},
+                                      onPressed: () {
+                                        showDialog(
+                                          context: context,
+                                          builder: (context) => AlertDialog(
+                                            title: const Text('Application Sent'),
+                                            content: Text('Your application for ${job.title} at ${job.businessName} has been sent!'),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () => Navigator.pop(context),
+                                                child: const Text('OK'),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      },
                                       type: ButtonType.secondary, // Blue button
                                     ),
                                   ),
