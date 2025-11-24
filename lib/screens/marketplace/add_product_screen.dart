@@ -9,6 +9,7 @@ import '../../services/auth_service.dart';
 import '../../services/user_service.dart';
 import '../../widgets/custom_textfield.dart';
 import '../../widgets/primary_button.dart';
+import '../../theme/app_theme.dart';
 
 class AddProductScreen extends StatefulWidget {
   const AddProductScreen({super.key});
@@ -137,42 +138,73 @@ class _AddProductScreenState extends State<AddProductScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Post Product')),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(24),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              Text(
+                'Product Details',
+                style: AppTextStyles.titleMedium,
+              ),
+              const SizedBox(height: 16),
+              
               GestureDetector(
                 onTap: _pickImage,
                 child: Container(
-                  height: 200,
+                  height: 220,
                   decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.grey),
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: _imageFile != null ? AppColors.primaryBlue : Colors.grey.shade300,
+                      width: 2,
+                      style: _imageFile != null ? BorderStyle.solid : BorderStyle.none, // Dashed border needs custom painter, using solid for now or simplified
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
                   child: _imageFile != null
                       ? ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(14),
                           child: Image.file(_imageFile!, fit: BoxFit.cover),
                         )
-                      : const Column(
+                      : Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.add_photo_alternate, size: 50, color: Colors.grey),
-                            SizedBox(height: 8),
-                            Text('Tap to select image', style: TextStyle(color: Colors.grey)),
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: AppColors.primaryBlue.withValues(alpha: 0.1),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.add_photo_alternate_outlined, size: 40, color: AppColors.primaryBlue),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              'Tap to upload image',
+                              style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold),
+                            ),
+                            Text(
+                              'Max size: 5MB',
+                              style: AppTextStyles.bodySmall,
+                            ),
                           ],
                         ),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 24),
 
               CustomTextField(
                 controller: _nameController,
                 label: 'Product Name',
-                prefixIcon: Icons.shopping_bag,
+                prefixIcon: Icons.shopping_bag_outlined,
                 validator: (value) {
                   if (value == null || value.isEmpty) return 'Name is required';
                   return null;
@@ -183,8 +215,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
               CustomTextField(
                 controller: _descriptionController,
                 label: 'Description',
-                prefixIcon: Icons.description,
-                maxLines: 3,
+                prefixIcon: Icons.description_outlined,
+                maxLines: 4,
                 validator: (value) {
                   if (value == null || value.isEmpty) return 'Description is required';
                   return null;
@@ -192,50 +224,68 @@ class _AddProductScreenState extends State<AddProductScreen> {
               ),
               const SizedBox(height: 16),
 
-              CustomTextField(
-                controller: _priceController,
-                label: 'Price (₱)',
-                prefixIcon: Icons.attach_money,
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value == null || value.isEmpty) return 'Price is required';
-                  if (double.tryParse(value) == null) return 'Enter valid price';
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-
-              DropdownButtonFormField<String>(
-                initialValue: _selectedCategory,
-                decoration: const InputDecoration(
-                  labelText: 'Category',
-                  prefixIcon: Icon(Icons.category),
-                ),
-                items: _categories.map((category) {
-                  return DropdownMenuItem(value: category, child: Text(category));
-                }).toList(),
-                onChanged: (value) {
-                  if (value != null) setState(() => _selectedCategory = value);
-                },
+              Row(
+                children: [
+                  Expanded(
+                    child: CustomTextField(
+                      controller: _priceController,
+                      label: 'Price (₱)',
+                      prefixIcon: Icons.attach_money,
+                      keyboardType: TextInputType.number,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) return 'Required';
+                        if (double.tryParse(value) == null) return 'Invalid';
+                        return null;
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      initialValue: _selectedCategory,
+                      decoration: InputDecoration(
+                        labelText: 'Category',
+                        prefixIcon: const Icon(Icons.category_outlined, color: AppColors.textLight),
+                        filled: true,
+                        fillColor: AppColors.inputBackground,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                      items: _categories.map((category) {
+                        return DropdownMenuItem(value: category, child: Text(category, style: AppTextStyles.bodyMedium));
+                      }).toList(),
+                      onChanged: (value) {
+                        if (value != null) setState(() => _selectedCategory = value);
+                      },
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 16),
 
               CustomTextField(
                 controller: _locationController,
                 label: 'Location',
-                prefixIcon: Icons.location_on,
+                prefixIcon: Icons.location_on_outlined,
                 validator: (value) {
                   if (value == null || value.isEmpty) return 'Location is required';
                   return null;
                 },
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 32),
 
               PrimaryButton(
                 text: 'Post Product',
                 isLoading: _isLoading,
                 onPressed: _handleSubmit,
               ),
+              const SizedBox(height: 24),
             ],
           ),
         ),

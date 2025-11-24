@@ -4,6 +4,8 @@ import '../../models/user_model.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/custom_button.dart';
+import '../../services/business_service.dart';
+import 'create_business_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   final UserModel user;
@@ -98,6 +100,28 @@ class ProfileScreen extends StatelessWidget {
                   title: 'Edit Profile',
                   onTap: () {
                     // TODO: Navigate to Edit Profile
+                  },
+                ),
+                _buildMenuItem(
+                  icon: Icons.store_mall_directory_outlined,
+                  title: 'Business Profile',
+                  onTap: () async {
+                    final businessService = Provider.of<BusinessService>(context, listen: false);
+                    final business = await businessService.getBusinessByOwnerId(user.userId);
+                    
+                    if (context.mounted) {
+                      if (business != null) {
+                        // TODO: Navigate to Edit Business Profile
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Edit Business Profile coming soon!')),
+                        );
+                      } else {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const CreateBusinessScreen()),
+                        );
+                      }
+                    }
                   },
                 ),
                 _buildMenuItem(

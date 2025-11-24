@@ -8,7 +8,7 @@ import 'product_detail_screen.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/category_pill.dart';
-import '../../widgets/listing_card.dart';
+import '../../widgets/product_card.dart';
 
 class MarketplaceScreen extends StatefulWidget {
   const MarketplaceScreen({super.key});
@@ -105,14 +105,14 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                             ),
                           ],
                         ),
-                        child: const Icon(Icons.connect_without_contact, color: AppColors.primaryBlue, size: 24),
+                        child: const Icon(Icons.store_mall_directory_outlined, color: AppColors.primaryBlue, size: 24),
                       ),
                       const SizedBox(width: 12),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('E-Konekt', style: AppTextStyles.titleMedium.copyWith(color: AppColors.primaryBlue)),
-                          Text('Connect. Uplift. Thrive', style: AppTextStyles.bodyMedium.copyWith(fontSize: 10)),
+                          Text('Marketplace', style: AppTextStyles.titleMedium.copyWith(color: AppColors.primaryBlue)),
+                          Text('Discover local goods', style: AppTextStyles.bodyMedium.copyWith(fontSize: 10)),
                         ],
                       ),
                     ],
@@ -122,9 +122,8 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                   // Search Bar
                   CustomTextField(
                     controller: _searchController,
-                    hintText: 'Marketplace...',
+                    hintText: 'Search products...',
                     prefixIcon: const Icon(Icons.search, color: AppColors.textLight),
-                    suffixIcon: const Icon(Icons.tune, color: AppColors.primaryBlue),
                     onChanged: (value) => _filterProducts(),
                   ),
                   const SizedBox(height: 16),
@@ -150,7 +149,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                   ),
                   const SizedBox(height: 24),
                   
-                  Text('Nearby Products', style: AppTextStyles.titleLarge),
+                  Text('Featured Items', style: AppTextStyles.titleLarge),
                 ],
               ),
             ),
@@ -172,11 +171,8 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                           itemCount: _displayedProducts.length,
                           itemBuilder: (context, index) {
                             final product = _displayedProducts[index];
-                            return ListingCard(
-                              title: product.name,
-                              subtitle: product.location, // Or category if available
-                              price: '₱${product.price.toStringAsFixed(2)}',
-                              imageUrl: product.imageUrl,
+                            return ProductCard(
+                              product: product,
                               onTap: () {
                                 Navigator.push(
                                   context,

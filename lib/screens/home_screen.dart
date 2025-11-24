@@ -20,10 +20,13 @@ import 'marketplace/add_product_screen.dart';
 import 'jobs/add_job_screen.dart';
 import 'marketplace/product_detail_screen.dart';
 import 'jobs/job_detail_screen.dart';
+import '../services/business_service.dart';
+import 'profile/create_business_screen.dart';
 
 import '../theme/app_theme.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/listing_card.dart';
+import '../widgets/product_card.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -157,12 +160,11 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Row(
                 children: [
-                  // Logo placeholder or Icon
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(14),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.05),
@@ -171,34 +173,62 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ],
                     ),
-                    child: const Icon(Icons.connect_without_contact, color: AppColors.primaryBlue, size: 32),
+                    child: const Icon(Icons.connect_without_contact, color: AppColors.primaryBlue, size: 28),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 14),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('E-Konekt', style: AppTextStyles.titleLarge.copyWith(color: AppColors.primaryBlue)),
-                      Text('Connect. Uplift. Thrive', style: AppTextStyles.bodyMedium.copyWith(fontSize: 12)),
+                      Text('E-Konekt', style: AppTextStyles.titleLarge.copyWith(color: AppColors.primaryBlue, fontWeight: FontWeight.bold)),
+                      Text('Connect. Uplift. Thrive', style: AppTextStyles.bodyMedium.copyWith(fontSize: 12, color: AppColors.textLight)),
                     ],
                   ),
                 ],
               ),
-              CircleAvatar(
-                radius: 24,
-                backgroundColor: AppColors.inputBackground,
-                child: Text(user.name[0].toUpperCase(), style: AppTextStyles.titleMedium),
+              Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.primaryBlue.withValues(alpha: 0.2), width: 2),
+                ),
+                child: CircleAvatar(
+                  radius: 22,
+                  backgroundColor: AppColors.inputBackground,
+                  child: Text(
+                    user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',
+                    style: AppTextStyles.titleMedium.copyWith(color: AppColors.primaryBlue),
+                  ),
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 28),
 
           // Search Bar
-          CustomTextField(
-            hintText: 'Search jobs...',
-            prefixIcon: const Icon(Icons.search, color: AppColors.textLight),
-            suffixIcon: const Icon(Icons.tune, color: AppColors.primaryBlue),
-            readOnly: true,
-            onTap: () => setState(() => _selectedIndex = 2),
+          Container(
+            decoration: BoxDecoration(
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 15,
+                  offset: const Offset(0, 5),
+                ),
+              ],
+            ),
+            child: CustomTextField(
+              hintText: 'What are you looking for?',
+              prefixIcon: const Icon(Icons.search, color: AppColors.textLight),
+              suffixIcon: Container(
+                margin: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryBlue.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.tune, color: AppColors.primaryBlue, size: 20),
+              ),
+              readOnly: true,
+              onTap: () => setState(() => _selectedIndex = 1), // Go to Marketplace for search
+            ),
           ),
           const SizedBox(height: 32),
 
@@ -209,7 +239,7 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Expanded(
                 child: _buildQuickActionButton(
-                  icon: Icons.store,
+                  icon: Icons.storefront_outlined,
                   label: 'Sell Item',
                   color: AppColors.primaryBlue,
                   onTap: () {
@@ -223,14 +253,69 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(width: 16),
               Expanded(
                 child: _buildQuickActionButton(
-                  icon: Icons.work,
+                  icon: Icons.work_outline,
                   label: 'Post Job',
                   color: AppColors.accentGold,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const AddJobScreen()),
-                    ).then((_) => _loadHomeData());
+                  onTap: () async {
+                    final authService = Provider.of<AuthService>(context, listen: false);
+                    final businessService = Provider.of<BusinessService>(context, listen: false);
+                    final currentUser = authService.currentUser;
+
+                    if (currentUser == null) return;
+
+                    // Check if user is a business
+                    // Note: Assuming 'business' role check is needed, or if all users can be businesses
+                    // For now, let's check if they have a business profile
+                    
+                    setState(() => _isLoading = true);
+                    try {
+                      final business = await businessService.getBusinessByOwnerId(currentUser.id);
+                      
+                      if (!mounted) return;
+                      setState(() => _isLoading = false);
+
+                      if (business != null) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const AddJobScreen()),
+                        ).then((_) => _loadHomeData());
+                      } else {
+                        // Prompt to create business profile
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text('Create Business Profile'),
+                            content: const Text('You need to create a business profile before you can post jobs.'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text('Cancel'),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => const CreateBusinessScreen()),
+                                  ).then((result) {
+                                    if (result == true) {
+                                      // If created successfully, maybe auto-navigate to add job or just refresh
+                                      _loadHomeData();
+                                    }
+                                  });
+                                },
+                                child: const Text('Create Profile'),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      if (mounted) setState(() => _isLoading = false);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Error checking business profile: $e')),
+                      );
+                    }
                   },
                 ),
               ),
@@ -243,29 +328,26 @@ class _HomeScreenState extends State<HomeScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Recent Items', style: AppTextStyles.titleLarge),
+                Text('Fresh Finds', style: AppTextStyles.titleLarge),
                 TextButton(
                   onPressed: () => setState(() => _selectedIndex = 1),
-                  child: const Text('View All'),
+                  child: Text('View All', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.primaryBlue)),
                 ),
               ],
             ),
             const SizedBox(height: 16),
             SizedBox(
-              height: 240,
+              height: 260, // Increased height for ProductCard
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 itemCount: _recentProducts.length,
                 itemBuilder: (context, index) {
                   final product = _recentProducts[index];
                   return Container(
-                    width: 200,
-                    margin: const EdgeInsets.only(right: 16),
-                    child: ListingCard(
-                      title: product.name,
-                      subtitle: 'PHP ${product.price.toStringAsFixed(0)}',
-                      location: product.location,
-                      imageUrl: product.imageUrl,
+                    width: 180,
+                    margin: const EdgeInsets.only(right: 16, bottom: 8), // Bottom margin for shadow
+                    child: ProductCard(
+                      product: product,
                       onTap: () {
                         Navigator.push(
                           context,
@@ -279,7 +361,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
               ),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
           ],
 
           // Recent Jobs
@@ -287,16 +369,16 @@ class _HomeScreenState extends State<HomeScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Recent Jobs', style: AppTextStyles.titleLarge),
+                Text('Latest Jobs', style: AppTextStyles.titleLarge),
                 TextButton(
                   onPressed: () => setState(() => _selectedIndex = 2),
-                  child: const Text('View All'),
+                  child: Text('View All', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.primaryBlue)),
                 ),
               ],
             ),
             const SizedBox(height: 16),
             SizedBox(
-              height: 200,
+              height: 180,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 itemCount: _recentJobs.length,
@@ -304,7 +386,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   final job = _recentJobs[index];
                   return Container(
                     width: 280,
-                    margin: const EdgeInsets.only(right: 16),
+                    margin: const EdgeInsets.only(right: 16, bottom: 8),
                     child: ListingCard(
                       title: job.title,
                       subtitle: job.businessName,
@@ -318,7 +400,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         );
                       },
                       actionButton: Text(
-                        'PHP ${job.salary.toStringAsFixed(0)}/mo',
+                        '₱${job.salary.toStringAsFixed(0)}/mo',
                         style: AppTextStyles.bodyMedium.copyWith(
                           color: AppColors.primaryBlue,
                           fontWeight: FontWeight.bold,
@@ -336,10 +418,10 @@ class _HomeScreenState extends State<HomeScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Community Announcements', style: AppTextStyles.titleLarge),
+              Text('Community Updates', style: AppTextStyles.titleLarge),
               TextButton(
                 onPressed: () => setState(() => _selectedIndex = 3),
-                child: const Text('View All'),
+                child: Text('View All', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.primaryBlue)),
               ),
             ],
           ),
@@ -360,7 +442,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           padding: const EdgeInsets.only(bottom: 16),
                           child: ListingCard(
                             title: announcement.title,
-                            subtitle: '${announcement.postedBy} • ${_formatDate(announcement.createdAt)}',
+                            subtitle: _formatDate(announcement.createdAt), // Removed ID/PostedBy
                             location: announcement.type.toUpperCase(),
                             onTap: () {
                               Navigator.push(
@@ -372,7 +454,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             },
                             actionButton: Text(
                               announcement.content,
-                              style: AppTextStyles.bodyMedium,
+                              style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textLight),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),

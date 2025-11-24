@@ -14,38 +14,58 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Load environment variables from .env file
-  await dotenv.load();
+  try {
+    // Load environment variables from .env file
+    await dotenv.load(fileName: ".env");
 
-  // Initialize Supabase
-  await Supabase.initialize(
-    url: dotenv.get('SUPABASE_URL'),
-    anonKey: dotenv.get('SUPABASE_ANON_KEY'),
-  );
-  
-  runApp(
-    MultiProvider(
-      providers: [
-        Provider<AuthService>(
-          create: (_) => AuthService(),
+    // Initialize Supabase
+    await Supabase.initialize(
+      url: dotenv.get('SUPABASE_URL'),
+      anonKey: dotenv.get('SUPABASE_ANON_KEY'),
+    );
+    
+    runApp(
+      MultiProvider(
+        providers: [
+          Provider<AuthService>(
+            create: (_) => AuthService(),
+          ),
+          Provider<UserService>(
+            create: (_) => UserService(),
+          ),
+          Provider<ProductService>(
+            create: (_) => ProductService(),
+          ),
+          Provider<BusinessService>(
+            create: (_) => BusinessService(),
+          ),
+          Provider<JobService>(
+            create: (_) => JobService(),
+          ),
+          Provider<AnnouncementService>(
+            create: (_) => AnnouncementService(),
+          ),
+        ],
+        child: const EKonektApp(),
+      ),
+    );
+  } catch (e, stackTrace) {
+    debugPrint('Initialization Error: $e');
+    debugPrint(stackTrace.toString());
+    runApp(
+      MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(32),
+              child: SelectableText(
+                'Initialization Error:\n$e\n\n$stackTrace',
+                style: const TextStyle(color: Colors.red, fontFamily: 'Courier'),
+              ),
+            ),
+          ),
         ),
-        Provider<UserService>(
-          create: (_) => UserService(),
-        ),
-        Provider<ProductService>(
-          create: (_) => ProductService(),
-        ),
-        Provider<BusinessService>(
-          create: (_) => BusinessService(),
-        ),
-        Provider<JobService>(
-          create: (_) => JobService(),
-        ),
-        Provider<AnnouncementService>(
-          create: (_) => AnnouncementService(),
-        ),
-      ],
-      child: const EKonektApp(),
-    ),
-  );
+      ),
+    );
+  }
 }

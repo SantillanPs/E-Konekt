@@ -6,11 +6,11 @@ import '../../services/job_service.dart';
 import '../../services/auth_service.dart';
 import '../../services/business_service.dart';
 import 'add_job_screen.dart';
-import 'job_detail_screen.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/custom_text_field.dart';
-import '../../widgets/listing_card.dart';
-import '../../widgets/custom_button.dart';
+import '../profile/create_business_screen.dart';
+import 'widgets/jobs_header.dart';
+import 'widgets/jobs_list.dart';
 
 class JobsScreen extends StatefulWidget {
   const JobsScreen({super.key});
@@ -24,13 +24,11 @@ class _JobsScreenState extends State<JobsScreen> {
   List<JobModel> _allJobs = [];
   List<JobModel> _displayedJobs = [];
   bool _isLoading = true;
-  bool _hasBusinessProfile = false;
 
   @override
   void initState() {
     super.initState();
     _loadJobs();
-    _checkBusinessProfile();
   }
 
   @override
@@ -50,23 +48,12 @@ class _JobsScreenState extends State<JobsScreen> {
         _isLoading = false;
       });
     } catch (e) {
-      setState(() => _isLoading = false);
       if (mounted) {
+        setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error loading jobs: $e')),
         );
       }
-    }
-  }
-
-  Future<void> _checkBusinessProfile() async {
-    final authService = Provider.of<AuthService>(context, listen: false);
-    final businessService = Provider.of<BusinessService>(context, listen: false);
-    final currentUser = authService.currentUser;
-
-    if (currentUser != null) {
-      final business = await businessService.getBusinessByOwnerId(currentUser.id);
-      setState(() => _hasBusinessProfile = business != null);
     }
   }
 
@@ -93,34 +80,7 @@ class _JobsScreenState extends State<JobsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                   // Header
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.05),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: const Icon(Icons.work_outline, color: AppColors.primaryBlue, size: 24),
-                      ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Careers', style: AppTextStyles.titleMedium.copyWith(color: AppColors.primaryBlue)),
-                          Text('Find your path', style: AppTextStyles.bodyMedium.copyWith(fontSize: 10)),
-                        ],
-                      ),
-                    ],
-                  ),
+                  const JobsHeader(),
                   const SizedBox(height: 24),
 
                   // Search Bar
@@ -139,77 +99,79 @@ class _JobsScreenState extends State<JobsScreen> {
             ),
             
             Expanded(
-              child: _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : _displayedJobs.isEmpty
-                      ? const Center(child: Text('No jobs available'))
-                      : ListView.builder(
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                          itemCount: _displayedJobs.length,
-                          itemBuilder: (context, index) {
-                            final job = _displayedJobs[index];
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 16),
-                              child: ListingCard(
-                                title: job.title,
-                                subtitle: job.businessName,
-                                price: 'PHP ${job.salary.toStringAsFixed(0)} / month', // Format as per design
-                                location: job.location, // Assuming job has location or use business location
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => JobDetailScreen(job: job),
-                                    ),
-                                  );
-                                },
-                                actionButton: Align(
-                                  alignment: Alignment.centerRight,
-                                  child: SizedBox(
-                                    height: 36,
-                                    child: CustomButton(
-                                      text: 'Apply Now',
-                                      onPressed: () {
-                                        showDialog(
-                                          context: context,
-                                          builder: (context) => AlertDialog(
-                                            title: const Text('Application Sent'),
-                                            content: Text('Your application for ${job.title} at ${job.businessName} has been sent!'),
-                                            actions: [
-                                              TextButton(
-                                                onPressed: () => Navigator.pop(context),
-                                                child: const Text('OK'),
-                                              ),
-                                            ],
-                                          ),
-                                        );
-                                      },
-                                      type: ButtonType.secondary, // Blue button
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
+              child: JobsList(
+                jobs: _displayedJobs,
+                isLoading: _isLoading,
+              ),
             ),
           ],
         ),
       ),
-      floatingActionButton: _hasBusinessProfile
-          ? FloatingActionButton(
-              heroTag: 'jobs_fab',
-              onPressed: () async {
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const AddJobScreen()),
-                );
-                if (result == true) _loadJobs();
-              },
-              backgroundColor: AppColors.accentGold,
-              child: const Icon(Icons.add, color: AppColors.textDark),
-            )
-          : null,
+      floatingActionButton: FloatingActionButton(
+        heroTag: 'jobs_fab',
+        onPressed: () async {
+          final authService = Provider.of<AuthService>(context, listen: false);
+          final businessService = Provider.of<BusinessService>(context, listen: false);
+          final currentUser = authService.currentUser;
+
+          if (currentUser == null) return;
+
+          setState(() => _isLoading = true);
+          try {
+            // Note: currentUser is Supabase User, so use .id
+            final business = await businessService.getBusinessByOwnerId(currentUser.id);
+            
+            if (!mounted) return;
+            setState(() => _isLoading = false);
+
+            if (business != null) {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AddJobScreen()),
+              );
+              if (!mounted) return;
+              if (result == true) _loadJobs();
+            } else {
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Create Business Profile'),
+                  content: const Text('You need to create a business profile before you can post jobs.'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const CreateBusinessScreen()),
+                        ).then((result) {
+                          if (result == true) {
+                            _loadJobs();
+                          }
+                        });
+                      },
+                      child: const Text('Create Profile'),
+                    ),
+                  ],
+                ),
+              );
+            }
+          } catch (e) {
+            if (mounted) {
+              setState(() => _isLoading = false);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Error checking business profile: $e')),
+              );
+            }
+          }
+        },
+        backgroundColor: AppColors.accentGold,
+        child: const Icon(Icons.add, color: AppColors.textDark),
+      ),
     );
   }
 }
