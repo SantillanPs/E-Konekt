@@ -6,6 +6,7 @@ import '../../models/application_model.dart';
 import '../../services/job_service.dart';
 import '../../services/auth_service.dart';
 import '../../services/user_service.dart';
+import '../../theme/app_theme.dart';
 
 class JobDetailScreen extends StatefulWidget {
   final JobModel job;
@@ -84,89 +85,250 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Job Details')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              widget.job.title,
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              widget.job.businessName,
-              style: const TextStyle(fontSize: 18, color: Colors.grey),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.green.shade50,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.attach_money, color: Colors.green, size: 32),
-                  const SizedBox(width: 8),
-                  Text(
-                    '₱${widget.job.salary.toStringAsFixed(2)}',
-                    style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.green),
+      backgroundColor: const Color(0xFFF5F7FA),
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 180.0,
+            floating: false,
+            pinned: true,
+            backgroundColor: Colors.teal,
+            flexibleSpace: FlexibleSpaceBar(
+              background: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Colors.teal, Colors.teal.shade800],
                   ),
+                ),
+                child: Stack(
+                  children: [
+                    Positioned(
+                      right: -30,
+                      bottom: -30,
+                      child: Icon(
+                        Icons.work_outline,
+                        size: 200,
+                        color: Colors.white.withValues(alpha: 0.1),
+                      ),
+                    ),
+                    Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.2),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.business_center,
+                              size: 40,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            widget.job.businessName.toUpperCase(),
+                            style: AppTextStyles.titleMedium.copyWith(
+                              color: Colors.white,
+                              letterSpacing: 1.5,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Title
+                  Text(
+                    widget.job.title,
+                    style: AppTextStyles.titleLarge.copyWith(fontSize: 28),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Compensation Card
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [AppColors.accentGold, AppColors.accentGold.withValues(alpha: 0.8)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.accentGold.withValues(alpha: 0.3),
+                          blurRadius: 12,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        Text(
+                          'COMPENSATION',
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: AppColors.textDark.withValues(alpha: 0.7),
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          '₱${widget.job.salary.toStringAsFixed(0)}',
+                          style: AppTextStyles.titleLarge.copyWith(
+                            fontSize: 32,
+                            color: AppColors.textDark,
+                          ),
+                        ),
+                        Text(
+                          'per month',
+                          style: AppTextStyles.bodyMedium.copyWith(
+                            color: AppColors.textDark.withValues(alpha: 0.8),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Job Details Grid
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        _buildDetailRow(Icons.category_outlined, 'Job Type', widget.job.category),
+                        const Divider(height: 24),
+                        _buildDetailRow(Icons.location_on_outlined, 'Location', widget.job.location),
+                        const Divider(height: 24),
+                        _buildDetailRow(Icons.calendar_today_outlined, 'Posted', _formatDate(widget.job.createdAt)),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Description
+                  Text(
+                    'Job Description',
+                    style: AppTextStyles.titleMedium.copyWith(fontSize: 20),
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      widget.job.description,
+                      style: AppTextStyles.bodyMedium.copyWith(height: 1.6, fontSize: 16),
+                    ),
+                  ),
+                  const SizedBox(height: 100), // Spacing for floating button
                 ],
               ),
             ),
-            const SizedBox(height: 16),
-            _buildInfoRow(Icons.category, 'Job Type', widget.job.category),
-            const SizedBox(height: 8),
-            _buildInfoRow(Icons.location_on, 'Location', widget.job.location),
-            const SizedBox(height: 8),
-            _buildInfoRow(Icons.calendar_today, 'Posted', _formatDate(widget.job.createdAt)),
-            const SizedBox(height: 24),
-            const Text(
-              'Job Description',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: SizedBox(
+          width: double.infinity,
+          height: 56,
+          child: ElevatedButton(
+            onPressed: _hasApplied || _isLoading ? null : _handleApply,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _hasApplied ? Colors.grey : AppColors.primaryBlue,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              elevation: 4,
+              shadowColor: AppColors.primaryBlue.withValues(alpha: 0.4),
             ),
-            const SizedBox(height: 8),
-            Text(
-              widget.job.description,
-              style: const TextStyle(fontSize: 16, height: 1.5),
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: ElevatedButton(
-                onPressed: _hasApplied || _isLoading ? null : _handleApply,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _hasApplied ? Colors.grey : Colors.blue,
-                ),
-                child: _isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                      )
-                    : Text(_hasApplied ? 'Already Applied' : 'Apply Now'),
-              ),
-            ),
-          ],
+            child: _isLoading
+                ? const SizedBox(
+                    height: 24,
+                    width: 24,
+                    child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white),
+                  )
+                : Text(
+                    _hasApplied ? 'ALREADY APPLIED' : 'APPLY NOW',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.2,
+                      color: Colors.white,
+                    ),
+                  ),
+          ),
         ),
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value) {
+  Widget _buildDetailRow(IconData icon, String label, String value) {
     return Row(
       children: [
-        Icon(icon, size: 20, color: Colors.grey),
-        const SizedBox(width: 8),
-        Text(
-          '$label: ',
-          style: const TextStyle(fontWeight: FontWeight.bold),
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: AppColors.primaryBlue.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, size: 20, color: AppColors.primaryBlue),
         ),
-        Expanded(child: Text(value)),
+        const SizedBox(width: 16),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: AppTextStyles.bodySmall.copyWith(color: AppColors.textLight),
+            ),
+            Text(
+              value,
+              style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600),
+            ),
+          ],
+        ),
       ],
     );
   }
@@ -177,11 +339,11 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
 
     if (difference.inDays == 0) {
       if (difference.inHours == 0) {
-        return '${difference.inMinutes} minutes ago';
+        return '${difference.inMinutes}m ago';
       }
-      return '${difference.inHours} hours ago';
+      return '${difference.inHours}h ago';
     } else if (difference.inDays < 7) {
-      return '${difference.inDays} days ago';
+      return '${difference.inDays}d ago';
     } else {
       return '${date.day}/${date.month}/${date.year}';
     }

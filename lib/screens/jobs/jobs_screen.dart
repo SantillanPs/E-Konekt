@@ -109,14 +109,14 @@ class _JobsScreenState extends State<JobsScreen> {
                             ),
                           ],
                         ),
-                        child: const Icon(Icons.connect_without_contact, color: AppColors.primaryBlue, size: 24),
+                        child: const Icon(Icons.work_outline, color: AppColors.primaryBlue, size: 24),
                       ),
                       const SizedBox(width: 12),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('E-Konekt', style: AppTextStyles.titleMedium.copyWith(color: AppColors.primaryBlue)),
-                          Text('Connect. Uplift. Thrive', style: AppTextStyles.bodyMedium.copyWith(fontSize: 10)),
+                          Text('Careers', style: AppTextStyles.titleMedium.copyWith(color: AppColors.primaryBlue)),
+                          Text('Find your path', style: AppTextStyles.bodyMedium.copyWith(fontSize: 10)),
                         ],
                       ),
                     ],
@@ -128,12 +128,12 @@ class _JobsScreenState extends State<JobsScreen> {
                     controller: _searchController,
                     hintText: 'Search jobs...',
                     prefixIcon: const Icon(Icons.search, color: AppColors.textLight),
-                    suffixIcon: const Icon(Icons.add_box_outlined, color: AppColors.primaryBlue), // Mocking the + icon in search bar from design
-                    onChanged: _searchJobs, // CustomTextField needs to support this or use controller listener
+                    onChanged: _searchJobs,
                   ),
                   const SizedBox(height: 24),
 
-                  Text('Job Board', style: AppTextStyles.titleLarge),
+                  // Section Title
+                  Text('Latest Opportunities', style: AppTextStyles.titleLarge),
                 ],
               ),
             ),
