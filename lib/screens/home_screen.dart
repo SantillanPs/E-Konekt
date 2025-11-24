@@ -11,7 +11,15 @@ import 'announcements/announcements_screen.dart';
 import 'announcements/announcement_detail_screen.dart';
 import 'profile/profile_screen.dart';
 import '../models/announcement_model.dart';
+import '../models/product_model.dart';
+import '../models/job_model.dart';
 import '../services/announcement_service.dart';
+import '../services/product_service.dart';
+import '../services/job_service.dart';
+import 'marketplace/add_product_screen.dart';
+import 'jobs/add_job_screen.dart';
+import 'marketplace/product_detail_screen.dart';
+import 'jobs/job_detail_screen.dart';
 
 import '../theme/app_theme.dart';
 import '../widgets/custom_text_field.dart';
@@ -27,27 +35,40 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
   List<AnnouncementModel> _announcements = [];
-  bool _isLoadingAnnouncements = true;
+  List<ProductModel> _recentProducts = [];
+  List<JobModel> _recentJobs = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadAnnouncements();
+    _loadHomeData();
   }
 
-  Future<void> _loadAnnouncements() async {
+  Future<void> _loadHomeData() async {
+    setState(() => _isLoading = true);
     try {
-      final service = Provider.of<AnnouncementService>(context, listen: false);
-      final data = await service.getAllAnnouncements();
+      final announcementService = Provider.of<AnnouncementService>(context, listen: false);
+      final productService = Provider.of<ProductService>(context, listen: false);
+      final jobService = Provider.of<JobService>(context, listen: false);
+
+      final results = await Future.wait([
+        announcementService.getAllAnnouncements(),
+        productService.getProducts(),
+        jobService.getAllJobs(),
+      ]);
+
       if (mounted) {
         setState(() {
-          _announcements = data;
-          _isLoadingAnnouncements = false;
+          _announcements = results[0] as List<AnnouncementModel>;
+          _recentProducts = (results[1] as List<ProductModel>).take(5).toList();
+          _recentJobs = (results[2] as List<JobModel>).take(5).toList();
+          _isLoading = false;
         });
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _isLoadingAnnouncements = false);
+        setState(() => _isLoading = false);
       }
     }
   }
@@ -181,6 +202,136 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 32),
 
+          // Quick Actions
+          Text('Quick Actions', style: AppTextStyles.titleLarge),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: _buildQuickActionButton(
+                  icon: Icons.store,
+                  label: 'Sell Item',
+                  color: AppColors.primaryBlue,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const AddProductScreen()),
+                    ).then((_) => _loadHomeData());
+                  },
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _buildQuickActionButton(
+                  icon: Icons.work,
+                  label: 'Post Job',
+                  color: AppColors.accentGold,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const AddJobScreen()),
+                    ).then((_) => _loadHomeData());
+                  },
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 32),
+
+          // Recent Marketplace Items
+          if (_recentProducts.isNotEmpty) ...[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Recent Items', style: AppTextStyles.titleLarge),
+                TextButton(
+                  onPressed: () => setState(() => _selectedIndex = 1),
+                  child: const Text('View All'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 240,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: _recentProducts.length,
+                itemBuilder: (context, index) {
+                  final product = _recentProducts[index];
+                  return Container(
+                    width: 200,
+                    margin: const EdgeInsets.only(right: 16),
+                    child: ListingCard(
+                      title: product.name,
+                      subtitle: 'PHP ${product.price.toStringAsFixed(0)}',
+                      location: product.location,
+                      imageUrl: product.imageUrl,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ProductDetailScreen(product: product),
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 32),
+          ],
+
+          // Recent Jobs
+          if (_recentJobs.isNotEmpty) ...[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Recent Jobs', style: AppTextStyles.titleLarge),
+                TextButton(
+                  onPressed: () => setState(() => _selectedIndex = 2),
+                  child: const Text('View All'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 200,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: _recentJobs.length,
+                itemBuilder: (context, index) {
+                  final job = _recentJobs[index];
+                  return Container(
+                    width: 280,
+                    margin: const EdgeInsets.only(right: 16),
+                    child: ListingCard(
+                      title: job.title,
+                      subtitle: job.businessName,
+                      location: job.location,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => JobDetailScreen(job: job),
+                          ),
+                        );
+                      },
+                      actionButton: Text(
+                        'PHP ${job.salary.toStringAsFixed(0)}/mo',
+                        style: AppTextStyles.bodyMedium.copyWith(
+                          color: AppColors.primaryBlue,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 32),
+          ],
+
           // Community Announcements Header
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -195,7 +346,7 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 16),
 
           // Announcement Cards
-          _isLoadingAnnouncements
+          _isLoading
               ? const Center(child: CircularProgressIndicator())
               : _announcements.isEmpty
                   ? const Center(child: Text('No announcements yet'))
@@ -249,5 +400,37 @@ class _HomeScreenState extends State<HomeScreen> {
     } else {
       return '${date.day}/${date.month}';
     }
+  }
+  Widget _buildQuickActionButton({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: color.withValues(alpha: 0.3)),
+          ),
+          child: Column(
+            children: [
+              Icon(icon, color: color, size: 32),
+              const SizedBox(height: 8),
+              Text(
+                label,
+                style: AppTextStyles.titleMedium.copyWith(color: color, fontSize: 16),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
