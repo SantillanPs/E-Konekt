@@ -198,6 +198,7 @@ class _JobsScreenState extends State<JobsScreen> {
       ),
       floatingActionButton: _hasBusinessProfile
           ? FloatingActionButton(
+              heroTag: 'jobs_fab',
               onPressed: () async {
                 final result = await Navigator.push(
                   context,

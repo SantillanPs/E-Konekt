@@ -7,6 +7,9 @@ import '../../services/auth_service.dart';
 import '../../services/user_service.dart';
 import 'add_announcement_screen.dart';
 import 'announcement_detail_screen.dart';
+import '../../theme/app_theme.dart';
+import '../../widgets/custom_text_field.dart';
+import '../../widgets/listing_card.dart';
 
 class AnnouncementsScreen extends StatefulWidget {
   const AnnouncementsScreen({super.key});
@@ -99,63 +102,116 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Announcements'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadAnnouncements,
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                TextField(
-                  controller: _searchController,
-                  decoration: InputDecoration(
-                    hintText: 'Search announcements...',
-                    prefixIcon: const Icon(Icons.search),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
-                  onChanged: _searchAnnouncements,
-                ),
-                const SizedBox(height: 12),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                   // Header
+                  Row(
                     children: [
-                      _buildFilterChip('All', 'all'),
-                      _buildFilterChip('Barangay', 'barangay'),
-                      _buildFilterChip('Business', 'business'),
-                      _buildFilterChip('City', 'city'),
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.05),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(Icons.campaign, color: AppColors.primaryBlue, size: 24),
+                      ),
+                      const SizedBox(width: 12),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Alerts', style: AppTextStyles.titleMedium.copyWith(color: AppColors.primaryBlue)),
+                          Text('Stay updated', style: AppTextStyles.bodyMedium.copyWith(fontSize: 10)),
+                        ],
+                      ),
+                      const Spacer(),
+                      IconButton(
+                        icon: const Icon(Icons.refresh, color: AppColors.primaryBlue),
+                        onPressed: _loadAnnouncements,
+                      ),
                     ],
                   ),
-                ),
-              ],
+                  const SizedBox(height: 24),
+
+                  // Search Bar
+                  CustomTextField(
+                    controller: _searchController,
+                    hintText: 'Search alerts...',
+                    prefixIcon: const Icon(Icons.search, color: AppColors.textLight),
+                    onChanged: _searchAnnouncements,
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Filters
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        _buildFilterChip('All', 'all'),
+                        _buildFilterChip('Barangay', 'barangay'),
+                        _buildFilterChip('Business', 'business'),
+                        _buildFilterChip('City', 'city'),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                ],
+              ),
             ),
-          ),
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _displayedAnnouncements.isEmpty
-                    ? const Center(child: Text('No announcements'))
-                    : ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        itemCount: _displayedAnnouncements.length,
-                        itemBuilder: (context, index) {
-                          final announcement = _displayedAnnouncements[index];
-                          return _buildAnnouncementCard(announcement);
-                        },
-                      ),
-          ),
-        ],
+            
+            Expanded(
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _displayedAnnouncements.isEmpty
+                      ? const Center(child: Text('No announcements'))
+                      : ListView.builder(
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                          itemCount: _displayedAnnouncements.length,
+                          itemBuilder: (context, index) {
+                            final announcement = _displayedAnnouncements[index];
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 16),
+                              child: ListingCard(
+                                title: announcement.title,
+                                subtitle: _formatDate(announcement.createdAt),
+                                location: announcement.type.toUpperCase(),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => AnnouncementDetailScreen(announcement: announcement),
+                                    ),
+                                  );
+                                },
+                                actionButton: Text(
+                                  announcement.content,
+                                  style: AppTextStyles.bodyMedium,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+            ),
+          ],
+        ),
       ),
       floatingActionButton: _canPost
           ? FloatingActionButton(
+              heroTag: 'announcement_fab',
               onPressed: () async {
                 final result = await Navigator.push(
                   context,
@@ -163,7 +219,8 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
                 );
                 if (result == true) _loadAnnouncements();
               },
-              child: const Icon(Icons.add),
+              backgroundColor: AppColors.accentGold,
+              child: const Icon(Icons.add, color: AppColors.textDark),
             )
           : null,
     );
@@ -174,91 +231,22 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
     return Padding(
       padding: const EdgeInsets.only(right: 8),
       child: FilterChip(
-        label: Text(label),
+        label: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? Colors.white : AppColors.textDark,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
         selected: isSelected,
         onSelected: (selected) => _filterAnnouncements(value),
-      ),
-    );
-  }
-
-  Widget _buildAnnouncementCard(AnnouncementModel announcement) {
-    Color typeColor;
-    IconData typeIcon;
-    
-    switch (announcement.type) {
-      case 'barangay':
-        typeColor = Colors.blue;
-        typeIcon = Icons.location_city;
-        break;
-      case 'business':
-        typeColor = Colors.purple;
-        typeIcon = Icons.business;
-        break;
-      case 'city':
-        typeColor = Colors.orange;
-        typeIcon = Icons.location_on;
-        break;
-      default:
-        typeColor = Colors.grey;
-        typeIcon = Icons.announcement;
-    }
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => AnnouncementDetailScreen(announcement: announcement),
-            ),
-          );
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(typeIcon, size: 16, color: typeColor),
-                  const SizedBox(width: 4),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: typeColor.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      announcement.type.toUpperCase(),
-                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: typeColor),
-                    ),
-                  ),
-                  const Spacer(),
-                  Text(
-                    _formatDate(announcement.createdAt),
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(
-                announcement.title,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                announcement.content,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 14, color: Colors.grey),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Posted by: ${announcement.postedBy}',
-                style: const TextStyle(fontSize: 12, color: Colors.grey),
-              ),
-            ],
+        backgroundColor: Colors.white,
+        selectedColor: AppColors.primaryBlue,
+        checkmarkColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide(
+            color: isSelected ? Colors.transparent : AppColors.textLight.withValues(alpha: 0.3),
           ),
         ),
       ),

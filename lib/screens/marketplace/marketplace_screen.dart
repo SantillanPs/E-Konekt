@@ -193,6 +193,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'marketplace_fab',
         onPressed: () async {
           final result = await Navigator.push(
             context,
