@@ -7,6 +7,11 @@ import '../../services/auth_service.dart';
 import '../../services/business_service.dart';
 import 'add_job_screen.dart';
 import 'job_detail_screen.dart';
+import '../../theme/app_theme.dart';
+import '../../widgets/custom_text_field.dart';
+import '../../widgets/category_pill.dart';
+import '../../widgets/listing_card.dart';
+import '../../widgets/custom_button.dart';
 
 class JobsScreen extends StatefulWidget {
   const JobsScreen({super.key});
@@ -81,44 +86,119 @@ class _JobsScreenState extends State<JobsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Jobs'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadJobs,
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Search jobs...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-              ),
-              onChanged: _searchJobs,
-            ),
-          ),
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _displayedJobs.isEmpty
-                    ? const Center(child: Text('No jobs available'))
-                    : ListView.builder(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: _displayedJobs.length,
-                        itemBuilder: (context, index) {
-                          final job = _displayedJobs[index];
-                          return _buildJobCard(job);
-                        },
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                   // Header
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.05),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(Icons.connect_without_contact, color: AppColors.primaryBlue, size: 24),
                       ),
-          ),
-        ],
+                      const SizedBox(width: 12),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('E-Konekt', style: AppTextStyles.titleMedium.copyWith(color: AppColors.primaryBlue)),
+                          Text('Connect. Uplift. Thrive', style: AppTextStyles.bodyMedium.copyWith(fontSize: 10)),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Search Bar
+                  CustomTextField(
+                    controller: _searchController,
+                    hintText: 'Search jobs...',
+                    prefixIcon: const Icon(Icons.search, color: AppColors.textLight),
+                    suffixIcon: const Icon(Icons.add_box_outlined, color: AppColors.primaryBlue), // Mocking the + icon in search bar from design
+                    onChanged: _searchJobs, // CustomTextField needs to support this or use controller listener
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Pills
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        CategoryPill(label: 'Marketplace', isSelected: false, onTap: () {}), // Navigation logic handled in Home usually
+                        const SizedBox(width: 12),
+                        CategoryPill(label: 'Jobs', isSelected: true, onTap: () {}),
+                        const SizedBox(width: 12),
+                        const Icon(Icons.list_alt, color: AppColors.primaryBlue), // Mock icons
+                        const SizedBox(width: 12),
+                        const Icon(Icons.lock_outline, color: AppColors.primaryBlue),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  Text('Job Board', style: AppTextStyles.titleLarge),
+                ],
+              ),
+            ),
+            
+            Expanded(
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _displayedJobs.isEmpty
+                      ? const Center(child: Text('No jobs available'))
+                      : ListView.builder(
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                          itemCount: _displayedJobs.length,
+                          itemBuilder: (context, index) {
+                            final job = _displayedJobs[index];
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 16),
+                              child: ListingCard(
+                                title: job.title,
+                                subtitle: job.businessName,
+                                price: 'PHP ${job.salary.toStringAsFixed(0)} / month', // Format as per design
+                                location: job.location, // Assuming job has location or use business location
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => JobDetailScreen(job: job),
+                                    ),
+                                  );
+                                },
+                                actionButton: Align(
+                                  alignment: Alignment.centerRight,
+                                  child: SizedBox(
+                                    height: 36,
+                                    child: CustomButton(
+                                      text: 'Apply Now',
+                                      onPressed: () {},
+                                      type: ButtonType.secondary, // Blue button
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+            ),
+          ],
+        ),
       ),
       floatingActionButton: _hasBusinessProfile
           ? FloatingActionButton(
@@ -129,73 +209,10 @@ class _JobsScreenState extends State<JobsScreen> {
                 );
                 if (result == true) _loadJobs();
               },
-              child: const Icon(Icons.add),
+              backgroundColor: AppColors.accentGold,
+              child: const Icon(Icons.add, color: AppColors.textDark),
             )
           : null,
-    );
-  }
-
-  Widget _buildJobCard(JobModel job) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      child: InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => JobDetailScreen(job: job),
-            ),
-          );
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                job.title,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                job.businessName,
-                style: const TextStyle(fontSize: 14, color: Colors.grey),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  const Icon(Icons.attach_money, size: 16, color: Colors.green),
-                  Text(
-                    '₱${job.salary.toStringAsFixed(2)}',
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green),
-                  ),
-                  const SizedBox(width: 16),
-                  const Icon(Icons.location_on, size: 16, color: Colors.grey),
-                  Expanded(
-                    child: Text(
-                      job.location,
-                      style: const TextStyle(fontSize: 14),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.blue.shade50,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  job.category,
-                  style: TextStyle(fontSize: 12, color: Colors.blue.shade700),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

@@ -9,7 +9,7 @@
 -- STEP 1: GET YOUR AUTH USER ID
 -- ============================================
 -- First, run this to get your auth user ID:
--- SELECT id, email FROM auth.users ORDER BY created_at DESC LIMIT 1;
+SELECT id, email FROM auth.users ORDER BY created_at DESC LIMIT 1;
 -- Copy the UUID and replace 'YOUR-AUTH-USER-ID' below
 
 -- ============================================
@@ -22,7 +22,7 @@
 INSERT INTO public.users (id, email, name, role, barangay, city, barangay_admin, created_at, updated_at)
 VALUES 
   -- Replace this UUID with your actual auth user ID
-  ('YOUR-AUTH-USER-ID', 'your-email@example.com', 'Your Name', 'user', 'Barangay 1', 'Quezon City', false, NOW(), NOW())
+  ('f6b9679e-d77e-4ac6-843c-b1fb0b5d97aa', 'your-email@example.com', 'Your Name', 'user', 'Barangay 1', 'Quezon City', false, NOW(), NOW())
 ON CONFLICT (id) DO UPDATE SET
   name = EXCLUDED.name,
   role = EXCLUDED.role,
@@ -36,9 +36,9 @@ ON CONFLICT (id) DO UPDATE SET
 -- These will be owned by your user
 INSERT INTO public.businesses (owner_id, name, description, address, contact_info, logo_url, created_at, updated_at)
 VALUES 
-  ('YOUR-AUTH-USER-ID', 'Sari-Sari Store ni Aling Nena', 'Local convenience store selling everyday essentials', '123 Main St, Barangay 1, Quezon City', '0917-123-4567', 'https://via.placeholder.com/150', NOW(), NOW()),
-  ('YOUR-AUTH-USER-ID', 'Mang Tomas Carinderia', 'Affordable Filipino home-cooked meals', '456 Market Ave, Barangay 1, Quezon City', '0918-234-5678', 'https://via.placeholder.com/150', NOW(), NOW()),
-  ('YOUR-AUTH-USER-ID', 'QuickFix Repair Shop', 'Electronics and appliance repair services', '789 Tech St, Barangay 2, Quezon City', '0919-345-6789', 'https://via.placeholder.com/150', NOW(), NOW());
+  ('f6b9679e-d77e-4ac6-843c-b1fb0b5d97aa', 'Sari-Sari Store ni Aling Nena', 'Local convenience store selling everyday essentials', '123 Main St, Barangay 1, Quezon City', '0917-123-4567', 'https://via.placeholder.com/150', NOW(), NOW()),
+  ('f6b9679e-d77e-4ac6-843c-b1fb0b5d97aa', 'Mang Tomas Carinderia', 'Affordable Filipino home-cooked meals', '456 Market Ave, Barangay 1, Quezon City', '0918-234-5678', 'https://via.placeholder.com/150', NOW(), NOW()),
+  ('f6b9679e-d77e-4ac6-843c-b1fb0b5d97aa', 'QuickFix Repair Shop', 'Electronics and appliance repair services', '789 Tech St, Barangay 2, Quezon City', '0919-345-6789', 'https://via.placeholder.com/150', NOW(), NOW());
 
 -- ============================================
 -- STEP 4: CREATE MOCK PRODUCTS
@@ -48,9 +48,9 @@ VALUES
 -- Individual products (no business_id)
 INSERT INTO public.products (owner_id, business_id, seller_type, name, description, price, stock, image_url, location, category, owner_name, created_at, updated_at)
 VALUES 
-  ('YOUR-AUTH-USER-ID', NULL, 'individual', 'Used Laptop - Dell Inspiron', 'Gently used laptop, 8GB RAM, 256GB SSD, good condition', 15000.00, 1, 'https://via.placeholder.com/300', 'Barangay 1, Quezon City', 'Electronics', 'Your Name', NOW(), NOW()),
-  ('YOUR-AUTH-USER-ID', NULL, 'individual', 'Mountain Bike', 'Second-hand mountain bike, well-maintained', 8000.00, 1, 'https://via.placeholder.com/300', 'Barangay 1, Quezon City', 'Sports', 'Your Name', NOW(), NOW()),
-  ('YOUR-AUTH-USER-ID', NULL, 'individual', 'Study Table', 'Wooden study table with drawer, like new', 2500.00, 1, 'https://via.placeholder.com/300', 'Barangay 1, Quezon City', 'Furniture', 'Your Name', NOW(), NOW());
+  ('f6b9679e-d77e-4ac6-843c-b1fb0b5d97aa', NULL, 'individual', 'Used Laptop - Dell Inspiron', 'Gently used laptop, 8GB RAM, 256GB SSD, good condition', 15000.00, 1, 'https://via.placeholder.com/300', 'Barangay 1, Quezon City', 'Electronics', 'Your Name', NOW(), NOW()),
+  ('f6b9679e-d77e-4ac6-843c-b1fb0b5d97aa', NULL, 'individual', 'Mountain Bike', 'Second-hand mountain bike, well-maintained', 8000.00, 1, 'https://via.placeholder.com/300', 'Barangay 1, Quezon City', 'Sports', 'Your Name', NOW(), NOW()),
+  ('f6b9679e-d77e-4ac6-843c-b1fb0b5d97aa', NULL, 'individual', 'Study Table', 'Wooden study table with drawer, like new', 2500.00, 1, 'https://via.placeholder.com/300', 'Barangay 1, Quezon City', 'Furniture', 'Your Name', NOW(), NOW());
 
 -- Business products (with business_id)
 -- Note: Replace business_id with actual IDs after businesses are created
@@ -58,7 +58,7 @@ VALUES
 
 INSERT INTO public.products (owner_id, business_id, seller_type, name, description, price, stock, image_url, location, category, owner_name, created_at, updated_at)
 SELECT 
-  'YOUR-AUTH-USER-ID',
+  'f6b9679e-d77e-4ac6-843c-b1fb0b5d97aa',
   b.id,
   'business',
   'Rice - 25kg Sack',
@@ -75,7 +75,7 @@ FROM public.businesses b WHERE b.name = 'Sari-Sari Store ni Aling Nena' LIMIT 1;
 
 INSERT INTO public.products (owner_id, business_id, seller_type, name, description, price, stock, image_url, location, category, owner_name, created_at, updated_at)
 SELECT 
-  'YOUR-AUTH-USER-ID',
+  'f6b9679e-d77e-4ac6-843c-b1fb0b5d97aa',
   b.id,
   'business',
   'Cooking Oil - 1L',
@@ -92,7 +92,7 @@ FROM public.businesses b WHERE b.name = 'Sari-Sari Store ni Aling Nena' LIMIT 1;
 
 INSERT INTO public.products (owner_id, business_id, seller_type, name, description, price, stock, image_url, location, category, owner_name, created_at, updated_at)
 SELECT 
-  'YOUR-AUTH-USER-ID',
+  'f6b9679e-d77e-4ac6-843c-b1fb0b5d97aa',
   b.id,
   'business',
   'Adobo Meal',
@@ -109,7 +109,7 @@ FROM public.businesses b WHERE b.name = 'Mang Tomas Carinderia' LIMIT 1;
 
 INSERT INTO public.products (owner_id, business_id, seller_type, name, description, price, stock, image_url, location, category, owner_name, created_at, updated_at)
 SELECT 
-  'YOUR-AUTH-USER-ID',
+  'f6b9679e-d77e-4ac6-843c-b1fb0b5d97aa',
   b.id,
   'business',
   'Phone Screen Repair',
@@ -191,14 +191,14 @@ FROM public.businesses b WHERE b.name = 'Mang Tomas Carinderia' LIMIT 1;
 
 INSERT INTO public.announcements (posted_by, title, content, type, location, location_id, created_at, updated_at)
 VALUES 
-  ('YOUR-AUTH-USER-ID', 'Community Clean-Up Drive', 'Join us this Saturday for our monthly barangay clean-up! Meet at the barangay hall at 7 AM. Bring gloves and garbage bags.', 'barangay', 'barangay', NULL, NOW(), NOW()),
-  ('YOUR-AUTH-USER-ID', 'Basketball Tournament', 'Annual inter-barangay basketball tournament registration is now open! Sign up at the barangay hall. Tournament starts next month.', 'barangay', 'barangay', NULL, NOW(), NOW()),
-  ('YOUR-AUTH-USER-ID', 'Free Medical Check-up', 'Free medical and dental check-up this Friday at the barangay health center. First come, first served. Bring your health card.', 'barangay', 'barangay', NULL, NOW(), NOW());
+  ('f6b9679e-d77e-4ac6-843c-b1fb0b5d97aa', 'Community Clean-Up Drive', 'Join us this Saturday for our monthly barangay clean-up! Meet at the barangay hall at 7 AM. Bring gloves and garbage bags.', 'barangay', 'barangay', NULL, NOW(), NOW()),
+  ('f6b9679e-d77e-4ac6-843c-b1fb0b5d97aa', 'Basketball Tournament', 'Annual inter-barangay basketball tournament registration is now open! Sign up at the barangay hall. Tournament starts next month.', 'barangay', 'barangay', NULL, NOW(), NOW()),
+  ('f6b9679e-d77e-4ac6-843c-b1fb0b5d97aa', 'Free Medical Check-up', 'Free medical and dental check-up this Friday at the barangay health center. First come, first served. Bring your health card.', 'barangay', 'barangay', NULL, NOW(), NOW());
 
 -- Business announcements
 INSERT INTO public.announcements (posted_by, title, content, type, location, location_id, created_at, updated_at)
 SELECT 
-  'YOUR-AUTH-USER-ID',
+  'f6b9679e-d77e-4ac6-843c-b1fb0b5d97aa',
   'Grand Opening Sale!',
   'Celebrate our store anniversary with 20% off on all items! Valid this week only. Thank you for your continued support!',
   'business',
@@ -210,7 +210,7 @@ FROM public.businesses b WHERE b.name = 'Sari-Sari Store ni Aling Nena' LIMIT 1;
 
 INSERT INTO public.announcements (posted_by, title, content, type, location, location_id, created_at, updated_at)
 SELECT 
-  'YOUR-AUTH-USER-ID',
+  'f6b9679e-d77e-4ac6-843c-b1fb0b5d97aa',
   'New Menu Items!',
   'Try our new dishes: Kare-kare and Lechon Kawali! Available starting today. Come and taste the goodness!',
   'business',

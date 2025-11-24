@@ -1,0 +1,30 @@
+Analyzing e_konekt...                                           
+
+warning - The value of the local variable 'typeColor' isn't used - lib\screens\announcements\announcements_screen.dart:185:11 - unused_local_variable
+warning - The value of the local variable 'typeIcon' isn't used - lib\screens\announcements\announcements_screen.dart:186:14 - unused_local_variable
+  error - Expected an identifier - lib\screens\announcements\announcements_screen.dart:235:13 - missing_identifier
+  error - Expected to find ')' - lib\screens\announcements\announcements_screen.dart:235:13 - expected_token
+  error - Expected to find ';' - lib\screens\announcements\announcements_screen.dart:236:11 - expected_token
+warning - Dead code - lib\screens\announcements\announcements_screen.dart:236:12 - dead_code
+  error - Expected an identifier - lib\screens\announcements\announcements_screen.dart:236:12 - missing_identifier
+  error - Expected to find ';' - lib\screens\announcements\announcements_screen.dart:236:12 - expected_token
+  error - Unexpected text ';' - lib\screens\announcements\announcements_screen.dart:236:12 - unexpected_token
+  error - Expected an identifier - lib\screens\announcements\announcements_screen.dart:237:9 - missing_identifier
+  error - Expected to find ';' - lib\screens\announcements\announcements_screen.dart:237:9 - expected_token
+  error - Unexpected text ';' - lib\screens\announcements\announcements_screen.dart:237:9 - unexpected_token
+  error - Expected an identifier - lib\screens\announcements\announcements_screen.dart:237:10 - missing_identifier
+  error - Expected to find ';' - lib\screens\announcements\announcements_screen.dart:237:10 - expected_token
+  error - Unexpected text ';' - lib\screens\announcements\announcements_screen.dart:237:10 - unexpected_token
+  error - Expected an identifier - lib\screens\announcements\announcements_screen.dart:238:7 - missing_identifier
+  error - Expected to find ';' - lib\screens\announcements\announcements_screen.dart:238:7 - expected_token
+  error - Unexpected text ';' - lib\screens\announcements\announcements_screen.dart:238:7 - unexpected_token
+  error - Expected an identifier - lib\screens\announcements\announcements_screen.dart:238:8 - missing_identifier
+  error - Expected to find ';' - lib\screens\announcements\announcements_screen.dart:238:8 - expected_token
+  error - Unexpected text ';' - lib\screens\announcements\announcements_screen.dart:238:8 - unexpected_token
+  error - Expected an identifier - lib\screens\announcements\announcements_screen.dart:239:5 - missing_identifier
+  error - Unexpected text ';' - lib\screens\announcements\announcements_screen.dart:239:5 - unexpected_token
+   info - Unnecessary empty statement - lib\screens\announcements\announcements_screen.dart:239:6 - empty_statements
+warning - The declaration '_formatDate' isn't referenced - lib\screens\announcements\announcements_screen.dart:242:10 - unused_element
+warning - Unused import: '../services/business_service.dart' - lib\screens\home_screen.dart:6:8 - unused_import
+warning - Unused import: 'business/create_business_screen.dart' - lib\screens\home_screen.dart:11:8 - unused_import
+

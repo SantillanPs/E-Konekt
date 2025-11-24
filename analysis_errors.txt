@@ -1,0 +1,19 @@
+Analyzing e_konekt...                                           
+
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\announcements\announcement_detail_screen.dart:47:38 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\announcements\announcements_screen.dart:229:40 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\home_screen.dart:94:35 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\home_screen.dart:141:47 - deprecated_member_use
+  error - The method 'CustomButton' isn't defined for the type '_HomeScreenState' - lib\screens\home_screen.dart:236:22 - undefined_method
+  error - Undefined name 'ButtonType' - lib\screens\home_screen.dart:239:23 - undefined_identifier
+  error - The method 'CustomButton' isn't defined for the type '_HomeScreenState' - lib\screens\home_screen.dart:258:11 - undefined_method
+  error - Undefined name 'ButtonType' - lib\screens\home_screen.dart:261:19 - undefined_identifier
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\jobs\jobs_screen.dart:107:51 - deprecated_member_use
+  error - The named parameter 'onChanged' isn't defined - lib\screens\jobs\jobs_screen.dart:133:21 - undefined_named_parameter
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\marketplace\marketplace_screen.dart:103:51 - deprecated_member_use
+  error - The argument type 'CardTheme' can't be assigned to the parameter type 'CardThemeData?'.  - lib\theme\app_theme.dart:114:18 - argument_type_not_assignable
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\theme\app_theme.dart:117:35 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\category_pill.dart:37:49 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\custom_text_field.dart:34:33 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\listing_card.dart:34:35 - deprecated_member_use
+
