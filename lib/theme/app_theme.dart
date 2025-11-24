@@ -57,6 +57,12 @@ class AppTextStyles {
     color: AppColors.textLight,
   );
 
+  static TextStyle get bodySmall => GoogleFonts.outfit(
+    fontSize: 12,
+    fontWeight: FontWeight.normal,
+    color: AppColors.textLight,
+  );
+
   static TextStyle get button => GoogleFonts.outfit(
     fontSize: 16,
     fontWeight: FontWeight.w600,

@@ -9,7 +9,6 @@ import 'add_job_screen.dart';
 import 'job_detail_screen.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/custom_text_field.dart';
-import '../../widgets/category_pill.dart';
 import '../../widgets/listing_card.dart';
 import '../../widgets/custom_button.dart';
 

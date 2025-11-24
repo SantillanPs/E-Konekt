@@ -9,14 +9,13 @@ import 'marketplace/marketplace_screen.dart';
 import 'jobs/jobs_screen.dart';
 import 'announcements/announcements_screen.dart';
 import 'announcements/announcement_detail_screen.dart';
+import 'profile/profile_screen.dart';
 import '../models/announcement_model.dart';
 import '../services/announcement_service.dart';
 
 import '../theme/app_theme.dart';
 import '../widgets/custom_text_field.dart';
-import '../widgets/category_pill.dart';
 import '../widgets/listing_card.dart';
-import '../widgets/custom_button.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -53,29 +52,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> _handleLogout() async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Logout'),
-        content: const Text('Are you sure?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Logout'),
-          ),
-        ],
-      ),
-    );
 
-    if (confirm == true && mounted) {
-      await Provider.of<AuthService>(context, listen: false).logout();
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -110,7 +87,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 const MarketplaceScreen(),
                 const JobsScreen(),
                 const AnnouncementsScreen(),
-                _buildProfile(user),
+                ProfileScreen(user: user),
               ],
             ),
           );
@@ -257,26 +234,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildProfile(UserModel user) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        children: [
-          const CircleAvatar(radius: 50, child: Icon(Icons.person, size: 50)),
-          const SizedBox(height: 24),
-          Text(user.name, style: AppTextStyles.headlineMedium),
-          Text(user.email, style: AppTextStyles.bodyMedium),
-          const SizedBox(height: 32),
-          CustomButton(
-            text: 'Logout',
-            onPressed: _handleLogout,
-            type: ButtonType.outline,
-            icon: Icons.logout,
-          ),
-        ],
-      ),
-    );
-  }
+
   String _formatDate(DateTime date) {
     final now = DateTime.now();
     final difference = now.difference(date);
