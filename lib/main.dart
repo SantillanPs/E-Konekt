@@ -8,6 +8,7 @@ import 'services/product_service.dart';
 import 'services/business_service.dart';
 import 'services/job_service.dart';
 import 'services/announcement_service.dart';
+import 'services/notification_service.dart';
 import 'app.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -44,6 +45,9 @@ void main() async {
           ),
           Provider<AnnouncementService>(
             create: (_) => AnnouncementService(),
+          ),
+          Provider<NotificationService>(
+            create: (_) => NotificationService(),
           ),
         ],
         child: const EKonektApp(),

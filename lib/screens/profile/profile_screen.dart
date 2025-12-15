@@ -6,11 +6,19 @@ import '../../theme/app_theme.dart';
 import '../../widgets/custom_button.dart';
 import '../../services/business_service.dart';
 import 'create_business_screen.dart';
+import 'edit_business_screen.dart';
+import 'edit_profile_screen.dart';
+import 'my_listings_screen.dart';
+import 'notifications_screen.dart';
+import 'static_screens.dart';
+import '../marketplace/orders_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   final UserModel user;
 
   const ProfileScreen({super.key, required this.user});
+
+  // ... (keep usage of _handleLogout)
 
   Future<void> _handleLogout(BuildContext context) async {
     final confirm = await showDialog<bool>(
@@ -99,7 +107,10 @@ class ProfileScreen extends StatelessWidget {
                   icon: Icons.person_outline,
                   title: 'Edit Profile',
                   onTap: () {
-                    // TODO: Navigate to Edit Profile
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => EditProfileScreen(user: user)),
+                    );
                   },
                 ),
                 _buildMenuItem(
@@ -111,9 +122,11 @@ class ProfileScreen extends StatelessWidget {
                     
                     if (context.mounted) {
                       if (business != null) {
-                        // TODO: Navigate to Edit Business Profile
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Edit Business Profile coming soon!')),
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => EditBusinessScreen(business: business),
+                          ),
                         );
                       } else {
                         Navigator.push(
@@ -128,14 +141,30 @@ class ProfileScreen extends StatelessWidget {
                   icon: Icons.list_alt,
                   title: 'My Listings',
                   onTap: () {
-                    // TODO: Navigate to My Listings
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const MyListingsScreen()),
+                    );
+                  },
+                ),
+                _buildMenuItem(
+                  icon: Icons.shopping_bag_outlined,
+                  title: 'Sales & Orders',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const OrdersScreen()),
+                    );
                   },
                 ),
                 _buildMenuItem(
                   icon: Icons.notifications_outlined,
                   title: 'Notifications',
                   onTap: () {
-                    // TODO: Navigate to Notifications
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const NotificationsScreen()),
+                    );
                   },
                 ),
               ],
@@ -149,14 +178,20 @@ class ProfileScreen extends StatelessWidget {
                   icon: Icons.help_outline,
                   title: 'Help & Support',
                   onTap: () {
-                    // TODO: Navigate to Help
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const HelpSupportScreen()),
+                    );
                   },
                 ),
                 _buildMenuItem(
                   icon: Icons.privacy_tip_outlined,
                   title: 'Privacy Policy',
                   onTap: () {
-                    // TODO: Navigate to Privacy Policy
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const PrivacyPolicyScreen()),
+                    );
                   },
                 ),
               ],

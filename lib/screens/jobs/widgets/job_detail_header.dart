@@ -10,53 +10,71 @@ class JobDetailHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SliverAppBar(
-      expandedHeight: 180.0,
-      floating: false,
-      pinned: true,
-      backgroundColor: Colors.teal,
-      flexibleSpace: FlexibleSpaceBar(
-        background: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Colors.teal, Colors.teal.shade800],
+      expandedHeight: 120.0,
+      backgroundColor: Colors.white,
+      elevation: 0,
+      leading: Container(
+        margin: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
             ),
-          ),
-          child: Stack(
+          ],
+        ),
+        child: IconButton(
+          icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      flexibleSpace: FlexibleSpaceBar(
+        background: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 60, 24, 0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Positioned(
-                right: -30,
-                bottom: -30,
-                child: Icon(
-                  Icons.work_outline,
-                  size: 200,
-                  color: Colors.white.withValues(alpha: 0.1),
+              // Business Logo Placeholder
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: AppColors.primaryBlue.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.primaryBlue.withValues(alpha: 0.2)),
+                ),
+                child: Center(
+                  child: Text(
+                    job.businessName.isNotEmpty ? job.businessName[0].toUpperCase() : 'B',
+                    style: const TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primaryBlue,
+                    ),
+                  ),
                 ),
               ),
-              Center(
+              const SizedBox(width: 16),
+              Expanded(
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.business_center,
-                        size: 40,
-                        color: Colors.white,
+                    Text(
+                      job.businessName,
+                      style: AppTextStyles.titleMedium.copyWith(
+                        color: AppColors.textDark,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 4),
                     Text(
-                      job.businessName.toUpperCase(),
-                      style: AppTextStyles.titleMedium.copyWith(
-                        color: Colors.white,
-                        letterSpacing: 1.5,
-                        fontWeight: FontWeight.bold,
+                      job.location,
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: AppColors.textLight,
                       ),
                     ),
                   ],
@@ -65,10 +83,6 @@ class JobDetailHeader extends StatelessWidget {
             ],
           ),
         ),
-      ),
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back, color: Colors.white),
-        onPressed: () => Navigator.pop(context),
       ),
     );
   }

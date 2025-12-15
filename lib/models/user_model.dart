@@ -3,6 +3,7 @@ class UserModel {
   final String userId;
   final String name;
   final String email;
+  final String phoneNumber;
   final String role;
   final String barangay;
   final String city;
@@ -14,6 +15,7 @@ class UserModel {
     required this.userId,
     required this.name,
     required this.email,
+    this.phoneNumber = '',
     required this.role,
     required this.barangay,
     required this.city,
@@ -27,6 +29,7 @@ class UserModel {
       userId: json['id'] ?? '',
       name: json['name'] ?? '',
       email: json['email'] ?? '',
+      phoneNumber: json['phone_number'] ?? '',
       role: json['role'] ?? 'user',
       barangay: json['barangay'] ?? '',
       city: json['city'] ?? '',
@@ -45,6 +48,7 @@ class UserModel {
       'id': userId,
       'name': name,
       'email': email,
+      'phone_number': phoneNumber,
       'role': role,
       'barangay': barangay,
       'city': city,

@@ -2,6 +2,7 @@
 import 'dart:io';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/product_model.dart';
+import '../models/order_model.dart';
 
 class ProductService {
   final SupabaseClient _supabase = Supabase.instance.client;
@@ -127,6 +128,47 @@ class ProductService {
       return data.map((json) => ProductModel.fromJson(json)).toList();
     } catch (e) {
       throw Exception('Failed to get products by category: $e');
+    }
+  }
+
+  // --- Orders ---
+
+  // Create order
+  Future<void> createOrder(OrderModel order) async {
+    try {
+      await _supabase.from('orders').insert(order.toJson());
+    } catch (e) {
+      throw Exception('Failed to create order: $e');
+    }
+  }
+
+  // Get orders by seller (Sales)
+  Future<List<OrderModel>> getOrdersBySeller(String sellerId) async {
+    try {
+      final data = await _supabase
+          .from('orders')
+          .select()
+          .eq('seller_id', sellerId)
+          .order('created_at', ascending: false);
+
+      return data.map((json) => OrderModel.fromJson(json)).toList();
+    } catch (e) {
+      throw Exception('Failed to get seller orders: $e');
+    }
+  }
+
+  // Get orders by buyer (Purchases)
+  Future<List<OrderModel>> getOrdersByBuyer(String buyerId) async {
+    try {
+      final data = await _supabase
+          .from('orders')
+          .select()
+          .eq('buyer_id', buyerId)
+          .order('created_at', ascending: false);
+
+      return data.map((json) => OrderModel.fromJson(json)).toList();
+    } catch (e) {
+      throw Exception('Failed to get buyer orders: $e');
     }
   }
 }

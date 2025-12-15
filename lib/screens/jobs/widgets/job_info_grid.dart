@@ -24,10 +24,21 @@ class JobInfoGrid extends StatelessWidget {
       ),
       child: Column(
         children: [
+          _buildDetailRow(Icons.payments_outlined, 'Salary', '₱${job.salary.toStringAsFixed(0)} / mo'),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 16),
+            child: Divider(height: 1),
+          ),
           _buildDetailRow(Icons.category_outlined, 'Job Type', job.category),
-          const Divider(height: 24),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 16),
+            child: Divider(height: 1),
+          ),
           _buildDetailRow(Icons.location_on_outlined, 'Location', job.location),
-          const Divider(height: 24),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 16),
+            child: Divider(height: 1),
+          ),
           _buildDetailRow(Icons.calendar_today_outlined, 'Posted', _formatDate(job.createdAt)),
         ],
       ),
@@ -38,26 +49,32 @@ class JobInfoGrid extends StatelessWidget {
     return Row(
       children: [
         Container(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
             color: AppColors.primaryBlue.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(icon, size: 20, color: AppColors.primaryBlue),
+          child: Icon(icon, size: 24, color: AppColors.primaryBlue),
         ),
         const SizedBox(width: 16),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: AppTextStyles.bodySmall.copyWith(color: AppColors.textLight),
-            ),
-            Text(
-              value,
-              style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600),
-            ),
-          ],
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: AppTextStyles.bodySmall.copyWith(color: AppColors.textLight),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                value,
+                style: AppTextStyles.bodyMedium.copyWith(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16,
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/product_model.dart';
 import '../theme/app_theme.dart';
 
-class ProductCard extends StatelessWidget {
+class ProductCard extends StatefulWidget {
   final ProductModel product;
   final VoidCallback onTap;
 
@@ -13,9 +13,45 @@ class ProductCard extends StatelessWidget {
   });
 
   @override
+  State<ProductCard> createState() => _ProductCardState();
+}
+
+class _ProductCardState extends State<ProductCard> {
+  bool _isFavorite = false;
+
+  void _toggleFavorite() {
+    setState(() {
+      _isFavorite = !_isFavorite;
+    });
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(_isFavorite ? 'Added to favorites' : 'Removed from favorites'),
+        duration: const Duration(seconds: 1),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  void _addToCart() {
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('${widget.product.name} added to cart'),
+        duration: const Duration(seconds: 1),
+        behavior: SnackBarBehavior.floating,
+        action: SnackBarAction(
+          label: 'UNDO',
+          onPressed: () {},
+        ),
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: widget.onTap,
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -39,7 +75,7 @@ class ProductCard extends StatelessWidget {
                   ClipRRect(
                     borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
                     child: Image.network(
-                      product.imageUrl,
+                      widget.product.imageUrl,
                       width: double.infinity,
                       height: double.infinity,
                       fit: BoxFit.cover,
@@ -55,16 +91,19 @@ class ProductCard extends StatelessWidget {
                   Positioned(
                     top: 8,
                     right: 8,
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.8),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.favorite_border,
-                        size: 18,
-                        color: AppColors.textLight,
+                    child: GestureDetector(
+                      onTap: _toggleFavorite,
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.8),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          _isFavorite ? Icons.favorite : Icons.favorite_border,
+                          size: 18,
+                          color: _isFavorite ? Colors.red : AppColors.textLight,
+                        ),
                       ),
                     ),
                   ),
@@ -85,7 +124,7 @@ class ProductCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          product.name,
+                          widget.product.name,
                           style: AppTextStyles.bodyMedium.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
@@ -99,7 +138,7 @@ class ProductCard extends StatelessWidget {
                             const SizedBox(width: 4),
                             Expanded(
                               child: Text(
-                                product.location,
+                                widget.product.location,
                                 style: AppTextStyles.bodySmall.copyWith(fontSize: 10),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -113,19 +152,22 @@ class ProductCard extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          '₱${product.price.toStringAsFixed(0)}',
+                          '₱${widget.product.price.toStringAsFixed(0)}',
                           style: AppTextStyles.titleMedium.copyWith(
                             color: AppColors.primaryBlue,
                             fontSize: 16,
                           ),
                         ),
-                        Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            color: AppColors.primaryBlue.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(8),
+                        GestureDetector(
+                          onTap: _addToCart,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryBlue.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(Icons.add, size: 16, color: AppColors.primaryBlue),
                           ),
-                          child: const Icon(Icons.add, size: 16, color: AppColors.primaryBlue),
                         ),
                       ],
                     ),
