@@ -105,4 +105,42 @@ class AnnouncementService {
       throw Exception('Failed to update announcement: $e');
     }
   }
+
+  // Mark announcement as read
+  Future<void> markAsRead(String userId, String announcementId) async {
+    try {
+      await _supabase.from('announcement_reads').upsert({
+        'user_id': userId,
+        'announcement_id': announcementId,
+        'read_at': DateTime.now().toIso8601String(),
+      }, onConflict: 'user_id,announcement_id');
+    } catch (e) {
+      throw Exception('Failed to mark announcement as read: $e');
+    }
+  }
+
+  // Get read announcement IDs for a user
+  Future<List<String>> getReadAnnouncementIds(String userId) async {
+    try {
+      final data = await _supabase
+          .from('announcement_reads')
+          .select('announcement_id')
+          .eq('user_id', userId);
+
+      return (data as List).map((e) => e['announcement_id'] as String).toList();
+    } catch (e) {
+      return []; // Return empty list on error
+    }
+  }
+
+  // Mark all announcements as read
+  Future<void> markAllAsRead(String userId) async {
+    try {
+      await _supabase.rpc('mark_all_announcements_read', params: {
+        'target_user_id': userId,
+      });
+    } catch (e) {
+      throw Exception('Failed to mark all announcements as read: $e');
+    }
+  }
 }

@@ -9,6 +9,7 @@ class AnnouncementModel {
   final DateTime updatedAt;
   final String? location;
   final String? locationId;
+  bool isRead;
 
   AnnouncementModel({
     required this.announcementId,
@@ -20,6 +21,7 @@ class AnnouncementModel {
     required this.updatedAt,
     this.location,
     this.locationId,
+    this.isRead = false,
   });
 
   factory AnnouncementModel.fromJson(Map<String, dynamic> json) {
@@ -37,6 +39,7 @@ class AnnouncementModel {
           : DateTime.now(),
       location: json['location'],
       locationId: json['location_id']?.toString(),
+      isRead: false, // Default to false, populated separately
     );
   }
 

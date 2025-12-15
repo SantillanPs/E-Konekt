@@ -10,6 +10,7 @@ class UserModel {
   final DateTime? createdAt;
   final DateTime? updatedAt;
   final bool barangayAdmin;
+  final String? avatarUrl;
 
   UserModel({
     required this.userId,
@@ -22,6 +23,7 @@ class UserModel {
     this.createdAt,
     this.updatedAt,
     this.barangayAdmin = false,
+    this.avatarUrl,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -40,6 +42,7 @@ class UserModel {
           ? DateTime.parse(json['updated_at'])
           : null,
       barangayAdmin: json['barangay_admin'] ?? false,
+      avatarUrl: json['avatar_url'],
     );
   }
 
@@ -55,6 +58,7 @@ class UserModel {
       'created_at': createdAt?.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
       'barangay_admin': barangayAdmin,
+      'avatar_url': avatarUrl,
     };
   }
 }

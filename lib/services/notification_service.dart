@@ -25,13 +25,26 @@ class NotificationService {
       await _supabase
           .from('notifications')
           .update({'is_read': true})
-          .eq('id', notificationId);
+          .eq('id', notificationId)
+          .select();
     } catch (e) {
       throw Exception('Failed to mark notification as read: $e');
     }
   }
 
-  // Create notification
+  // Mark all notifications as read
+  Future<void> markAllAsRead(String userId) async {
+    try {
+      await _supabase
+          .from('notifications')
+          .update({'is_read': true})
+          .eq('user_id', userId)
+          .eq('is_read', false)
+          .select();
+    } catch (e) {
+      throw Exception('Failed to mark all as read: $e');
+    }
+  }
   Future<void> createNotification(NotificationModel notification) async {
     try {
       await _supabase.from('notifications').insert(notification.toJson());

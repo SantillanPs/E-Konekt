@@ -1,12 +1,60 @@
 // Announcement detail screen - shows full announcement
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../models/announcement_model.dart';
+import '../../services/announcement_service.dart';
+import '../../services/auth_service.dart';
 import '../../theme/app_theme.dart';
 
-class AnnouncementDetailScreen extends StatelessWidget {
+class AnnouncementDetailScreen extends StatefulWidget {
   final AnnouncementModel announcement;
 
   const AnnouncementDetailScreen({super.key, required this.announcement});
+
+  @override
+  State<AnnouncementDetailScreen> createState() => _AnnouncementDetailScreenState();
+}
+
+class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
+  bool _isMarkingRead = false;
+  late bool _isRead;
+
+  @override
+  void initState() {
+    super.initState();
+    _isRead = widget.announcement.isRead;
+  }
+
+  Future<void> _markAsRead() async {
+    setState(() => _isMarkingRead = true);
+    try {
+      final authService = Provider.of<AuthService>(context, listen: false);
+      final announcementService = Provider.of<AnnouncementService>(context, listen: false);
+      
+      final currentUser = authService.currentUser;
+      if (currentUser != null) {
+        await announcementService.markAsRead(currentUser.id, widget.announcement.announcementId);
+        setState(() => _isRead = true);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Marked as read')),
+          );
+          // Return true to pop to indicate change
+          Navigator.pop(context, true);
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to mark as read: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isMarkingRead = false);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -14,14 +62,14 @@ class AnnouncementDetailScreen extends StatelessWidget {
     List<Color> gradientColors;
     Color typeColor;
 
-    switch (announcement.type) {
+    switch (widget.announcement.type.toLowerCase()) {
       case 'barangay':
         typeIcon = Icons.location_city;
         typeColor = Colors.blue;
         gradientColors = [Colors.blue, Colors.blue.shade800];
         break;
       case 'business':
-        typeIcon = Icons.business;
+        typeIcon = Icons.store;
         typeColor = Colors.purple;
         gradientColors = [Colors.purple, Colors.purple.shade800];
         break;
@@ -31,7 +79,7 @@ class AnnouncementDetailScreen extends StatelessWidget {
         gradientColors = [Colors.orange, Colors.deepOrange];
         break;
       default:
-        typeIcon = Icons.announcement;
+        typeIcon = Icons.campaign;
         typeColor = Colors.grey;
         gradientColors = [Colors.grey, Colors.blueGrey];
     }
@@ -76,7 +124,7 @@ class AnnouncementDetailScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            announcement.type.toUpperCase(),
+                            widget.announcement.type.toUpperCase(),
                             style: AppTextStyles.titleMedium.copyWith(
                               color: Colors.white,
                               letterSpacing: 2.0,
@@ -103,7 +151,7 @@ class AnnouncementDetailScreen extends StatelessWidget {
                 children: [
                   // Title and Date Section
                   Text(
-                    announcement.title,
+                    widget.announcement.title,
                     style: AppTextStyles.titleLarge.copyWith(
                       fontSize: 26,
                       height: 1.2,
@@ -125,7 +173,7 @@ class AnnouncementDetailScreen extends StatelessWidget {
                             Icon(Icons.label, size: 14, color: typeColor),
                             const SizedBox(width: 6),
                             Text(
-                              announcement.type.toUpperCase(),
+                              widget.announcement.type.toUpperCase(),
                               style: AppTextStyles.bodySmall.copyWith(
                                 color: typeColor,
                                 fontWeight: FontWeight.bold,
@@ -138,7 +186,7 @@ class AnnouncementDetailScreen extends StatelessWidget {
                       Icon(Icons.access_time, size: 16, color: AppColors.textLight),
                       const SizedBox(width: 6),
                       Text(
-                        _formatDate(announcement.createdAt),
+                        _formatDate(widget.announcement.createdAt),
                         style: AppTextStyles.bodySmall.copyWith(color: AppColors.textLight),
                       ),
                     ],
@@ -173,7 +221,7 @@ class AnnouncementDetailScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          announcement.content,
+                          widget.announcement.content,
                           style: AppTextStyles.bodyMedium.copyWith(
                             height: 1.8,
                             fontSize: 16,
@@ -186,7 +234,7 @@ class AnnouncementDetailScreen extends StatelessWidget {
                   
                   const SizedBox(height: 30),
                   
-                  // Action Buttons (Mocked)
+                  // Action Buttons
                   Row(
                     children: [
                       Expanded(
@@ -204,11 +252,17 @@ class AnnouncementDetailScreen extends StatelessWidget {
                       const SizedBox(width: 16),
                       Expanded(
                         child: ElevatedButton.icon(
-                          onPressed: () {},
-                          icon: const Icon(Icons.check, color: Colors.white),
-                          label: const Text('Mark as Read', style: TextStyle(color: Colors.white)),
+                          onPressed: _isRead ? null : _markAsRead, // Disable if already read
+                          icon: _isMarkingRead 
+                              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                              : Icon(_isRead ? Icons.check_circle : Icons.check, color: Colors.white),
+                          label: Text(
+                            _isRead ? 'Read' : 'Mark as Read', 
+                            style: const TextStyle(color: Colors.white)
+                          ),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primaryBlue,
+                            backgroundColor: _isRead ? Colors.green : AppColors.primaryBlue,
+                            disabledBackgroundColor: Colors.green.withValues(alpha: 0.6),
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             elevation: 0,

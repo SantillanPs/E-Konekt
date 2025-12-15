@@ -8,8 +8,8 @@ import '../../services/user_service.dart';
 import 'add_announcement_screen.dart';
 import 'announcement_detail_screen.dart';
 import '../../theme/app_theme.dart';
-import '../../widgets/custom_text_field.dart';
-import '../../widgets/listing_card.dart';
+import '../../theme/app_theme.dart';
+import 'widgets/announcement_card.dart';
 
 class AnnouncementsScreen extends StatefulWidget {
   const AnnouncementsScreen({super.key});
@@ -43,7 +43,21 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
     setState(() => _isLoading = true);
     try {
       final announcementService = Provider.of<AnnouncementService>(context, listen: false);
+      final authService = Provider.of<AuthService>(context, listen: false);
+      
       final announcements = await announcementService.getAllAnnouncements();
+      
+      // Check read status if user is logged in
+      final currentUser = authService.currentUser;
+      if (currentUser != null) {
+        final readIds = await announcementService.getReadAnnouncementIds(currentUser.id);
+        for (var announcement in announcements) {
+          if (readIds.contains(announcement.announcementId)) {
+            announcement.isRead = true;
+          }
+        }
+      }
+
       setState(() {
         _allAnnouncements = announcements;
         _displayedAnnouncements = announcements;
@@ -99,58 +113,109 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
     });
   }
 
+  Future<void> _markAllAsRead() async {
+    try {
+      final authService = Provider.of<AuthService>(context, listen: false);
+      final announcementService = Provider.of<AnnouncementService>(context, listen: false);
+      
+      final currentUser = authService.currentUser;
+      if (currentUser == null) return;
+
+      // Optimistic update
+      setState(() {
+        for (var announcement in _allAnnouncements) {
+          announcement.isRead = true;
+        }
+      });
+
+      await announcementService.markAllAsRead(currentUser.id);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('All announcements marked as read')),
+        );
+      }
+    } catch (e) {
+      _loadAnnouncements(); // Revert on error
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF9FAFB),
       body: SafeArea(
         child: Column(
           children: [
-            Padding(
+            Container(
               padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(24),
+                  bottomRight: Radius.circular(24),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.03),
+                    blurRadius: 15,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                    // Header
                   Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.05),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: const Icon(Icons.campaign, color: AppColors.primaryBlue, size: 24),
-                      ),
-                      const SizedBox(width: 12),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Alerts', style: AppTextStyles.titleMedium.copyWith(color: AppColors.primaryBlue)),
-                          Text('Stay updated', style: AppTextStyles.bodyMedium.copyWith(fontSize: 10)),
+                          Text('Alerts & News', style: AppTextStyles.headlineMedium.copyWith(fontSize: 24)),
+                          Text('Stay updated with your community', style: AppTextStyles.bodyMedium),
                         ],
                       ),
                       const Spacer(),
-                      IconButton(
-                        icon: const Icon(Icons.refresh, color: AppColors.primaryBlue),
-                        onPressed: _loadAnnouncements,
-                      ),
+                      if (_allAnnouncements.isNotEmpty)
+                        TextButton(
+                          onPressed: _markAllAsRead,
+                          child: Text(
+                            'Mark all read',
+                            style: AppTextStyles.bodySmall.copyWith(
+                              color: AppColors.primaryBlue,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                   const SizedBox(height: 24),
 
                   // Search Bar
-                  CustomTextField(
-                    controller: _searchController,
-                    hintText: 'Search alerts...',
-                    prefixIcon: const Icon(Icons.search, color: AppColors.textLight),
-                    onChanged: _searchAnnouncements,
+                  Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF3F4F6),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: TextField(
+                      controller: _searchController,
+                      onChanged: _searchAnnouncements,
+                      style: AppTextStyles.bodyLarge,
+                      decoration: InputDecoration(
+                        hintText: 'Search for updates...',
+                        hintStyle: AppTextStyles.bodyMedium,
+                        prefixIcon: const Icon(Icons.search, color: AppColors.textLight),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                        fillColor: Colors.transparent,
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 24),
 
@@ -159,14 +224,13 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: [
-                        _buildFilterChip('All', 'all'),
+                        _buildFilterChip('All Updates', 'all'),
                         _buildFilterChip('Barangay', 'barangay'),
                         _buildFilterChip('Business', 'business'),
                         _buildFilterChip('City', 'city'),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 24),
                 ],
               ),
             ),
@@ -175,33 +239,34 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : _displayedAnnouncements.isEmpty
-                      ? const Center(child: Text('No announcements'))
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.feed_outlined, size: 64, color: AppColors.textLight.withValues(alpha: 0.3)),
+                              const SizedBox(height: 16),
+                              Text('No announcements found', style: AppTextStyles.bodyLarge.copyWith(color: AppColors.textLight)),
+                            ],
+                          ),
+                        )
                       : ListView.builder(
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
                           itemCount: _displayedAnnouncements.length,
                           itemBuilder: (context, index) {
                             final announcement = _displayedAnnouncements[index];
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 16),
-                              child: ListingCard(
-                                title: announcement.title,
-                                subtitle: _formatDate(announcement.createdAt),
-                                location: announcement.type.toUpperCase(),
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => AnnouncementDetailScreen(announcement: announcement),
-                                    ),
-                                  );
-                                },
-                                actionButton: Text(
-                                  announcement.content,
-                                  style: AppTextStyles.bodyMedium,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
+                            return AnnouncementCard(
+                              announcement: announcement,
+                              onTap: () async {
+                                final result = await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => AnnouncementDetailScreen(announcement: announcement),
+                                  ),
+                                );
+                                if (result == true) {
+                                  _loadAnnouncements();
+                                }
+                              },
                             );
                           },
                         ),
@@ -210,7 +275,7 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
         ),
       ),
       floatingActionButton: _canPost
-          ? FloatingActionButton(
+          ? FloatingActionButton.extended(
               heroTag: 'announcement_fab',
               onPressed: () async {
                 final result = await Navigator.push(
@@ -219,8 +284,9 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
                 );
                 if (result == true) _loadAnnouncements();
               },
-              backgroundColor: AppColors.accentGold,
-              child: const Icon(Icons.add, color: AppColors.textDark),
+              backgroundColor: AppColors.primaryBlue,
+              icon: const Icon(Icons.edit_outlined),
+              label: const Text('Post Update'),
             )
           : null,
     );
@@ -235,18 +301,20 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
           label,
           style: TextStyle(
             color: isSelected ? Colors.white : AppColors.textDark,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+            fontSize: 13,
           ),
         ),
         selected: isSelected,
         onSelected: (selected) => _filterAnnouncements(value),
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
         selectedColor: AppColors.primaryBlue,
-        checkmarkColor: Colors.white,
+        showCheckmark: false,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
           side: BorderSide(
-            color: isSelected ? Colors.transparent : AppColors.textLight.withValues(alpha: 0.3),
+            color: isSelected ? Colors.transparent : Colors.grey.withValues(alpha: 0.2),
           ),
         ),
       ),

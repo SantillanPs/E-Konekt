@@ -1,9 +1,34 @@
 // User service - handles database CRUD operations for users
+import 'dart:io';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/user_model.dart';
 
 class UserService {
   final SupabaseClient _supabase = Supabase.instance.client;
+
+  // Upload profile image
+  Future<String> uploadProfileImage(String userId, File imageFile) async {
+    try {
+      final fileExt = imageFile.path.split('.').last;
+      final fileName = '$userId-${DateTime.now().millisecondsSinceEpoch}.$fileExt';
+      final filePath = fileName;
+
+      await _supabase.storage.from('avatars').upload(
+        filePath,
+        imageFile,
+        fileOptions: const FileOptions(cacheControl: '3600', upsert: false),
+      );
+
+      final imageUrl = _supabase.storage.from('avatars').getPublicUrl(filePath);
+      
+      // Update user record with new avatar URL
+      await updateUser(userId, {'avatar_url': imageUrl});
+      
+      return imageUrl;
+    } catch (e) {
+      throw Exception('Failed to upload image: $e');
+    }
+  }
 
   // Create user in database
   Future<void> createUser(UserModel user) async {

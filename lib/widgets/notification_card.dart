@@ -14,28 +14,33 @@ class NotificationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Determine color based on notification type
+    final typeColor = _getTypeColor(notification.type);
+    
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       decoration: BoxDecoration(
-        color: notification.isRead ? Colors.white : const Color(0xFFF0F7FF),
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-        border: notification.isRead
-            ? Border.all(color: Colors.grey.withValues(alpha: 0.1))
-            : Border.all(color: AppColors.primaryBlue.withValues(alpha: 0.3)),
+        color: notification.isRead ? Colors.white : const Color(0xFFF9FAFB),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: notification.isRead ? const Color(0xFFEEF0F2) : typeColor.withValues(alpha: 0.3),
+        ),
+        boxShadow: notification.isRead
+            ? []
+            : [
+                BoxShadow(
+                  color: typeColor.withValues(alpha: 0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
       ),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
@@ -43,15 +48,17 @@ class NotificationCard extends StatelessWidget {
               children: [
                 // Icon Indicator
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: _getIconColor(notification.type).withValues(alpha: 0.1),
+                    color: notification.isRead 
+                        ? const Color(0xFFF3F4F6) 
+                        : typeColor.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     _getIcon(notification.type),
-                    color: _getIconColor(notification.type),
-                    size: 24,
+                    color: notification.isRead ? const Color(0xFF9CA3AF) : typeColor,
+                    size: 20,
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -62,47 +69,54 @@ class NotificationCard extends StatelessWidget {
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(
                             child: Text(
                               notification.title,
                               style: AppTextStyles.titleMedium.copyWith(
-                                fontSize: 16,
+                                fontSize: 15,
                                 fontWeight: notification.isRead ? FontWeight.w600 : FontWeight.bold,
-                                color: notification.isRead ? AppColors.textDark : Colors.black,
+                                color: notification.isRead ? const Color(0xFF4B5563) : const Color(0xFF111827),
                               ),
                             ),
                           ),
-                          if (!notification.isRead)
-                            Container(
-                              width: 8,
-                              height: 8,
-                              decoration: const BoxDecoration(
-                                color: AppColors.primaryBlue,
-                                shape: BoxShape.circle,
-                              ),
+                          const SizedBox(width: 8),
+                          Text(
+                            _formatDate(notification.createdAt),
+                            style: AppTextStyles.bodySmall.copyWith(
+                              color: const Color(0xFF9CA3AF),
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500,
                             ),
+                          ),
                         ],
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 4),
                       Text(
                         notification.message,
                         style: AppTextStyles.bodyMedium.copyWith(
-                          color: AppColors.textLight,
+                          color: const Color(0xFF6B7280),
                           height: 1.4,
+                          fontSize: 13,
                         ),
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        _formatDate(notification.createdAt),
-                        style: AppTextStyles.bodySmall.copyWith(
-                          color: AppColors.textLight.withValues(alpha: 0.8),
-                          fontSize: 11,
-                        ),
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
                 ),
+                // Unread Indicator Dot
+                if (!notification.isRead)
+                  Container(
+                    margin: const EdgeInsets.only(left: 12, top: 2),
+                    width: 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: typeColor,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
               ],
             ),
           ),
@@ -114,24 +128,28 @@ class NotificationCard extends StatelessWidget {
   IconData _getIcon(String type) {
     switch (type) {
       case 'order':
-        return Icons.shopping_bag_outlined;
+        return Icons.shopping_bag_rounded;
       case 'promotion':
-        return Icons.local_offer_outlined;
+        return Icons.local_offer_rounded;
+      case 'alert':
+        return Icons.warning_rounded;
       case 'system':
       default:
-        return Icons.notifications_none_outlined;
+        return Icons.notifications_rounded;
     }
   }
 
-  Color _getIconColor(String type) {
+  Color _getTypeColor(String type) {
     switch (type) {
       case 'order':
         return AppColors.primaryBlue;
       case 'promotion':
-        return AppColors.accentGold;
+        return const Color(0xFFF59E0B); // Amber
+      case 'alert':
+        return const Color(0xFFEF4444); // Red
       case 'system':
       default:
-        return AppColors.textLight;
+        return const Color(0xFF6366F1); // Indigo
     }
   }
 
@@ -141,13 +159,13 @@ class NotificationCard extends StatelessWidget {
 
     if (difference.inDays == 0) {
       if (difference.inMinutes < 60) {
-        return '${difference.inMinutes}m ago';
+        return '${difference.inMinutes}m';
       }
-      return '${difference.inHours}h ago';
+      return '${difference.inHours}h';
     } else if (difference.inDays < 7) {
-      return '${difference.inDays}d ago';
+      return '${difference.inDays}d';
     } else {
-      return '${date.day}/${date.month}/${date.year}';
+      return '${date.month}/${date.day}';
     }
   }
 }

@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../models/user_model.dart';
 import '../../services/user_service.dart';
@@ -21,6 +23,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _barangayController;
   late TextEditingController _cityController;
   bool _isLoading = false;
+  File? _imageFile;
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
@@ -40,6 +44,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.dispose();
   }
 
+  Future<void> _pickImage() async {
+    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _imageFile = File(pickedFile.path);
+      });
+    }
+  }
+
   Future<void> _saveProfile() async {
     if (_nameController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -53,6 +66,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     try {
       final userService = Provider.of<UserService>(context, listen: false);
       
+      // Upload image if selected
+      if (_imageFile != null) {
+        await userService.uploadProfileImage(widget.user.userId, _imageFile!);
+      }
+
       await userService.updateUser(widget.user.userId, {
         'name': _nameController.text,
         'phone_number': _phoneController.text,
@@ -93,35 +111,54 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             Center(
               child: Stack(
                 children: [
-                  Container(
-                    width: 100,
-                    height: 100,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: AppColors.primaryBlue.withValues(alpha: 0.1),
-                      border: Border.all(color: AppColors.primaryBlue, width: 2),
-                    ),
-                    child: Center(
-                      child: Text(
-                        widget.user.name.isNotEmpty ? widget.user.name[0].toUpperCase() : '?',
-                        style: const TextStyle(
-                          fontSize: 40,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primaryBlue,
-                        ),
+                   GestureDetector(
+                    onTap: _pickImage,
+                    child: Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.primaryBlue.withValues(alpha: 0.1),
+                        border: Border.all(color: AppColors.primaryBlue, width: 2),
+                        image: _imageFile != null
+                            ? DecorationImage(
+                                image: FileImage(_imageFile!),
+                                fit: BoxFit.cover,
+                              )
+                            : widget.user.avatarUrl != null
+                                ? DecorationImage(
+                                    image: NetworkImage(widget.user.avatarUrl!),
+                                    fit: BoxFit.cover,
+                                  )
+                                : null,
                       ),
+                      child: _imageFile == null && widget.user.avatarUrl == null
+                          ? Center(
+                              child: Text(
+                                widget.user.name.isNotEmpty ? widget.user.name[0].toUpperCase() : '?',
+                                style: const TextStyle(
+                                  fontSize: 40,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primaryBlue,
+                                ),
+                              ),
+                            )
+                          : null,
                     ),
                   ),
                   Positioned(
                     bottom: 0,
                     right: 0,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(
-                        color: AppColors.primaryBlue,
-                        shape: BoxShape.circle,
+                    child: GestureDetector(
+                      onTap: _pickImage,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: AppColors.primaryBlue,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
                       ),
-                      child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
                     ),
                   ),
                 ],

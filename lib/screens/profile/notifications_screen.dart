@@ -53,35 +53,99 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   Future<void> _markAsRead(NotificationModel notification) async {
     if (notification.isRead) return;
 
+    // Optimistic Update
+    setState(() {
+      final index = _notifications.indexWhere((n) => n.id == notification.id);
+      if (index != -1) {
+        _notifications[index] = NotificationModel(
+          id: notification.id,
+          userId: notification.userId,
+          title: notification.title,
+          message: notification.message,
+          type: notification.type,
+          isRead: true, // Mark as read optimistically
+          createdAt: notification.createdAt,
+        );
+      }
+    });
+
     try {
       final notificationService = Provider.of<NotificationService>(context, listen: false);
       await notificationService.markAsRead(notification.id);
-      _loadNotifications(); // Reload to update UI
+      // No need to reload if optimistic update matches reality
     } catch (e) {
-      // Handle error silently or show snackbar
+      // Revert if failed
+      _loadNotifications();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to mark as read: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _markAllAsRead() async {
+    try {
+      final authService = Provider.of<AuthService>(context, listen: false);
+      final notificationService = Provider.of<NotificationService>(context, listen: false);
+      
+      final currentUser = authService.currentUser;
+      if (currentUser == null) return;
+
+      await notificationService.markAllAsRead(currentUser.id);
+      _loadNotifications();
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('All notifications marked as read')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC), // Slightly off-white background
+      backgroundColor: const Color(0xFFF9FAFB),
       appBar: AppBar(
         title: Text(
           'Notifications',
-          style: AppTextStyles.headlineMedium.copyWith(fontSize: 22),
+          style: AppTextStyles.headlineMedium.copyWith(
+            fontSize: 20, 
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        centerTitle: false,
+        centerTitle: true,
         backgroundColor: Colors.white,
         foregroundColor: AppColors.textDark,
         elevation: 0,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: const Color(0xFFF3F4F6),
             height: 1,
           ),
         ),
+        actions: [
+          if (_notifications.isNotEmpty)
+            TextButton(
+              onPressed: _markAllAsRead,
+              child: Text(
+                'Mark all read',
+                style: AppTextStyles.bodySmall.copyWith(
+                  color: AppColors.primaryBlue,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -93,32 +157,44 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       Container(
                         padding: const EdgeInsets.all(24),
                         decoration: BoxDecoration(
-                          color: AppColors.primaryBlue.withValues(alpha: 0.1),
+                          color: Colors.white,
                           shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.03),
+                              blurRadius: 15,
+                              offset: const Offset(0, 5),
+                            ),
+                          ],
                         ),
                         child: Icon(
-                          Icons.notifications_none_rounded,
-                          size: 64,
-                          color: AppColors.primaryBlue.withValues(alpha: 0.5),
+                          Icons.notifications_off_outlined,
+                          size: 48,
+                          color: AppColors.textLight.withValues(alpha: 0.5),
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 24),
                       Text(
-                        'No notifications',
+                        'No notifications yet',
                         style: AppTextStyles.titleMedium.copyWith(
-                          color: AppColors.textLight,
+                          color: AppColors.textDark,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'You\'re all caught up!',
-                        style: AppTextStyles.bodyMedium,
+                        'We\'ll let you know when something\nimportant arrives.',
+                        textAlign: TextAlign.center,
+                        style: AppTextStyles.bodyMedium.copyWith(
+                          color: AppColors.textLight,
+                          height: 1.5,
+                        ),
                       ),
                     ],
                   ),
                 )
               : ListView.builder(
-                  padding: const EdgeInsets.only(top: 16, bottom: 24),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
                   itemCount: _notifications.length,
                   itemBuilder: (context, index) {
                     final notification = _notifications[index];

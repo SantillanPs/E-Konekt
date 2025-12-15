@@ -47,10 +47,13 @@ class HomeHeader extends StatelessWidget {
           child: CircleAvatar(
             radius: 22,
             backgroundColor: AppColors.inputBackground,
-            child: Text(
-              user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',
-              style: AppTextStyles.titleMedium.copyWith(color: AppColors.primaryBlue),
-            ),
+            backgroundImage: user.avatarUrl != null ? NetworkImage(user.avatarUrl!) : null,
+            child: user.avatarUrl == null
+                ? Text(
+                    user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',
+                    style: AppTextStyles.titleMedium.copyWith(color: AppColors.primaryBlue),
+                  )
+                : null,
           ),
         ),
       ],
